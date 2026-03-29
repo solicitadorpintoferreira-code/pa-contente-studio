@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P&A Content Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Bodoni+Moda:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0b;
+    --surface: #111114;
+    --surface2: #18181d;
+    --border: #2a2a32;
+    --gold: #c9a84c;
+    --gold-dim: #8a6e2f;
+    --text: #e8e4dc;
+    --text-muted: #6b6870;
+    --text-mid: #a09c98;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  .logo { display: flex; align-items: baseline; gap: 14px; }
+  .logo-mark { font-family: 'Bodoni Moda', serif; font-size: 22px; color: var(--gold); letter-spacing: 3px; font-weight: 700; }
+  .logo-sub { font-size: 10px; letter-spacing: 4px; color: var(--text-muted); text-transform: uppercase; }
+
+  .header-right { display: flex; align-items: center; gap: 24px; }
+  .nav-link { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); cursor: pointer; transition: color 0.2s; background: none; border: none; font-family: 'DM Mono', monospace; }
+  .nav-link:hover, .nav-link.active { color: var(--gold); }
+
+  .app { display: flex; flex: 1; height: calc(100vh - 65px); }
+
+  .sidebar { width: 220px; min-width: 220px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+  .sidebar-section { padding: 24px 20px 12px; font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+
+  .mode-btn { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; border: none; background: none; color: var(--text-mid); font-family: 'DM Mono', monospace; font-size: 11px; width: 100%; text-align: left; transition: all 0.15s; border-left: 2px solid transparent; }
+  .mode-btn:hover { background: var(--surface2); color: var(--text); }
+  .mode-btn.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.05); }
+  .mode-icon { font-size: 14px; width: 18px; text-align: center; }
+
+  .history-panel { flex: 1; overflow-y: auto; padding: 8px 0; }
+  .history-panel::-webkit-scrollbar { width: 3px; }
+  .history-panel::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .history-item { padding: 10px 20px; cursor: pointer; border-left: 2px solid transparent; transition: all 0.15s; }
+  .history-item:hover { background: var(--surface2); border-left-color: var(--border); }
+  .history-item.active { border-left-color: var(--gold-dim); background: rgba(201,168,76,0.04); }
+  .history-type { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 3px; }
+  .history-title { font-size: 11px; color: var(--text-mid); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; }
+  .history-date { font-size: 9px; color: var(--text-muted); margin-top: 3px; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .workspace { flex: 1; display: flex; overflow: hidden; }
+
+  .input-panel { width: 380px; min-width: 380px; border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; padding: 32px 28px; gap: 24px; }
+  .panel-title { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300; color: var(--text); letter-spacing: 1px; line-height: 1.2; }
+  .panel-subtitle { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+
+  .field-group { display: flex; flex-direction: column; gap: 8px; }
+  .field-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); }
+  .field-input, .field-textarea, .field-select { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: 'DM Mono', monospace; font-size: 12px; padding: 12px 14px; outline: none; transition: border-color 0.2s; width: 100%; resize: none; }
+  .field-input:focus, .field-textarea:focus, .field-select:focus { border-color: var(--gold-dim); }
+  .field-textarea { min-height: 100px; line-height: 1.6; }
+  .field-select { appearance: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6870'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 32px; }
+  .field-select option { background: var(--surface2); color: var(--text); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { padding: 5px 12px; border: 1px solid var(--border); font-size: 10px; letter-spacing: 1px; color: var(--text-muted); cursor: pointer; transition: all 0.15s; background: none; font-family: 'DM Mono', monospace; }
+  .chip:hover { border-color: var(--gold-dim); color: var(--text); }
+  .chip.selected { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.06); }
+
+  .generate-btn { background: var(--gold); color: var(--bg); border: none; padding: 14px 24px; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 4px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; width: 100%; }
+  .generate-btn:hover { background: #e0bb5a; transform: translateY(-1px); }
+  .generate-btn:active { transform: translateY(0); }
+  .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+  .output-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .output-header { padding: 20px 32px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .output-label { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+  .output-actions { display: flex; gap: 12px; }
+  .action-btn { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); background: none; padding: 6px 12px; cursor: pointer; font-family: 'DM Mono', monospace; transition: all 0.15s; }
+  .action-btn:hover { color: var(--gold); border-color: var(--gold-dim); }
+
+  .output-body { flex: 1; overflow-y: auto; padding: 40px; }
+  .output-body::-webkit-scrollbar { width: 3px; }
+  .output-body::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; }
+  .empty-monogram { font-family: 'Bodoni Moda', serif; font-size: 64px; color: rgba(201,168,76,0.12); letter-spacing: 6px; }
+  .empty-text { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+
+  .content-result { display: none; flex-direction: column; gap: 24px; }
+  .content-result.visible { display: flex; }
+
+  .result-type-label { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold); margin-bottom: 8px; }
+
+  .result-block { background: var(--surface); border: 1px solid var(--border); padding: 28px 32px; }
+  .result-block-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .copy-mini { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); background: none; border: none; font-family: 'DM Mono', monospace; cursor: pointer; transition: color 0.15s; }
+  .copy-mini:hover { color: var(--gold); }
+
+  .result-text { font-family: 'Cormorant Garamond', serif; font-size: 18px; line-height: 1.75; color: var(--text); font-weight: 300; white-space: pre-wrap; }
+  .result-text-mono { font-family: 'DM Mono', monospace; font-size: 12px; line-height: 1.8; color: var(--text-mid); white-space: pre-wrap; }
+
+  .loading-state { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 24px; }
+  .loading-state.visible { display: flex; }
+  .loading-bar { width: 200px; height: 1px; background: var(--border); position: relative; overflow: hidden; }
+  .loading-bar::after { content: ''; position: absolute; top: 0; left: -50%; width: 50%; height: 100%; background: var(--gold); animation: loading 1.4s ease-in-out infinite; }
+  @keyframes loading { 0% { left: -50%; } 100% { left: 150%; } }
+  .loading-text { font-size: 9px; letter-spacing: 4px; text-transform: uppercase; color: var(--text-muted); }
+
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+
+  .ideas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .idea-card { background: var(--surface); border: 1px solid var(--border); padding: 20px; cursor: pointer; transition: all 0.15s; }
+  .idea-card:hover { border-color: var(--gold-dim); background: rgba(201,168,76,0.03); }
+  .idea-card-num { font-size: 32px; font-family: 'Bodoni Moda', serif; color: rgba(201,168,76,0.15); line-height: 1; margin-bottom: 10px; }
+  .idea-card-text { font-family: 'Cormorant Garamond', serif; font-size: 15px; color: var(--text); line-height: 1.5; font-style: italic; }
+  .idea-card-format { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold-dim); margin-top: 10px; }
+
+  .carousel-slides { display: flex; flex-direction: column; gap: 12px; }
+  .slide-card { border: 1px solid var(--border); background: var(--surface); padding: 20px 24px; display: flex; gap: 16px; align-items: flex-start; }
+  .slide-num { font-family: 'Bodoni Moda', serif; font-size: 28px; color: var(--gold-dim); line-height: 1; min-width: 32px; }
+  .slide-content { flex: 1; }
+  .slide-label { font-size: 8px; letter-spacing: 3px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px; }
+  .slide-text { font-family: 'Cormorant Garamond', serif; font-size: 16px; color: var(--text); font-weight: 400; line-height: 1.5; }
+  .slide-note { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+
+  .story-sequence { display: flex; flex-direction: column; gap: 10px; }
+  .story-card { border: 1px solid var(--border); background: var(--surface); padding: 18px 22px; display: flex; gap: 14px; align-items: flex-start; }
+  .story-num { font-family: 'Bodoni Moda', serif; font-size: 22px; color: rgba(201,168,76,0.4); line-height: 1; min-width: 28px; }
+  .story-text { font-size: 13px; color: var(--text-mid); line-height: 1.6; flex: 1; }
+  .story-intent { font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--gold-dim); margin-top: 6px; }
+
+  .toast { position: fixed; bottom: 32px; right: 32px; background: var(--surface); border: 1px solid var(--gold-dim); color: var(--gold); padding: 12px 20px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; opacity: 0; transform: translateY(10px); transition: all 0.3s; pointer-events: none; z-index: 1000; }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  .fade-in { animation: fadeIn 0.4s ease forwards; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-mark">P&A</span>
+    <span class="logo-sub">Content Studio</span>
+  </div>
+  <div class="header-right">
+    <button class="nav-link active" onclick="setView('create', this)">Criar</button>
+    <button class="nav-link" onclick="setView('history', this)">Histórico</button>
+  </div>
+</header>
+
+<div class="app">
+
+  <div class="sidebar">
+    <div class="sidebar-section">Formato</div>
+    <button class="mode-btn active" onclick="setMode('caption')" id="btn-caption"><span class="mode-icon">✦</span> Caption / Reel</button>
+    <button class="mode-btn" onclick="setMode('carousel')" id="btn-carousel"><span class="mode-icon">⊞</span> Carrossel</button>
+    <button class="mode-btn" onclick="setMode('story')" id="btn-story"><span class="mode-icon">◻</span> Stories</button>
+    <button class="mode-btn" onclick="setMode('ideas')" id="btn-ideas"><span class="mode-icon">◈</span> Ideias</button>
+    <div class="divider"></div>
+    <div class="sidebar-section">Recentes</div>
+    <div class="history-panel" id="historyList"></div>
+  </div>
+
+  <div class="main">
+
+    <div id="createView" class="workspace">
+
+      <div class="input-panel">
+        <div>
+          <div class="panel-subtitle" id="modeLabel">Caption · Reel</div>
+          <div class="panel-title" id="modeTitle">Escrever uma caption</div>
+        </div>
+
+        <div id="form-caption">
+          <div class="field-group">
+            <div class="field-label">Tema ou ideia central</div>
+            <textarea class="field-textarea" id="caption-topic" placeholder="Ex: Por que a maioria das empresas não tem holding..."></textarea>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Tom</div>
+            <div class="chips">
+              <button class="chip selected" onclick="toggleChip(this)">Editorial</button>
+              <button class="chip" onclick="toggleChip(this)">Provocatório</button>
+              <button class="chip" onclick="toggleChip(this)">Educativo</button>
+              <button class="chip" onclick="toggleChip(this)">Direto</button>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Gancho (opcional)</div>
+            <input class="field-input" id="caption-hook" placeholder="Primeira linha que prende...">
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">CTA pretendido</div>
+            <select class="field-select" id="caption-cta">
+              <option value="salva">Guarda este post</option>
+              <option value="comenta">Comenta / Responde</option>
+              <option value="segue">Segue para mais</option>
+              <option value="link">Link na bio</option>
+              <option value="nenhum">Sem CTA explícito</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="form-carousel" style="display:none">
+          <div class="field-group">
+            <div class="field-label">Tema do carrossel</div>
+            <textarea class="field-textarea" id="carousel-topic" placeholder="Ex: As 4 camadas de proteção que uma holding oferece..."></textarea>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Número de slides</div>
+            <select class="field-select" id="carousel-slides-num">
+              <option value="5">5 slides</option>
+              <option value="7" selected>7 slides</option>
+              <option value="10">10 slides</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Estrutura</div>
+            <div class="chips">
+              <button class="chip selected" onclick="toggleChip(this)">Problema → Solução</button>
+              <button class="chip" onclick="toggleChip(this)">Lista numerada</button>
+              <button class="chip" onclick="toggleChip(this)">Antes → Depois</button>
+              <button class="chip" onclick="toggleChip(this)">Framework</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="form-story" style="display:none">
+          <div class="field-group">
+            <div class="field-label">Objetivo da sequência</div>
+            <select class="field-select" id="story-goal">
+              <option value="perfil">Visitas ao perfil</option>
+              <option value="evento">Promover evento</option>
+              <option value="conteudo">Destacar conteúdo</option>
+              <option value="lead">Captar leads</option>
+            </select>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Contexto / O que queres comunicar</div>
+            <textarea class="field-textarea" id="story-context" placeholder="Ex: Novo carrossel sobre holdings publicado..."></textarea>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Número de stories</div>
+            <select class="field-select" id="story-count">
+              <option value="4">4 stories</option>
+              <option value="6" selected>6 stories</option>
+              <option value="8">8 stories</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="form-ideas" style="display:none">
+          <div class="field-group">
+            <div class="field-label">Foco temático (opcional)</div>
+            <input class="field-input" id="ideas-focus" placeholder="Holdings, SPVs, pactos, Fix & Flip...">
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Formatos pretendidos</div>
+            <div class="chips">
+              <button class="chip selected" onclick="toggleChip(this)">Carrossel</button>
+              <button class="chip selected" onclick="toggleChip(this)">Reel / Caption</button>
+              <button class="chip" onclick="toggleChip(this)">Story</button>
+              <button class="chip" onclick="toggleChip(this)">Citação</button>
+            </div>
+          </div>
+          <div class="field-group" style="margin-top:16px">
+            <div class="field-label">Quantidade de ideias</div>
+            <select class="field-select" id="ideas-count">
+              <option value="6">6 ideias</option>
+              <option value="10" selected>10 ideias</option>
+              <option value="15">15 ideias</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" onclick="generate()">Gerar conteúdo →</button>
+      </div>
+
+      <div class="output-panel">
+        <div class="output-header">
+          <div class="output-label" id="outputLabel">Aguardando geração</div>
+          <div class="output-actions">
+            <button class="action-btn" onclick="copyAll()">Copiar tudo</button>
+            <button class="action-btn" onclick="saveToHistory()">Guardar</button>
+          </div>
+        </div>
+        <div class="output-body">
+          <div class="empty-state" id="emptyState">
+            <div class="empty-monogram">P&A</div>
+            <div class="empty-text">O conteúdo aparece aqui</div>
+          </div>
+          <div class="loading-state" id="loadingState">
+            <div class="loading-bar"></div>
+            <div class="loading-text">A gerar conteúdo</div>
+          </div>
+          <div class="content-result" id="contentResult"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div id="historyView" style="display:none; flex:1; overflow-y:auto; padding:40px;">
+      <div style="margin-bottom:32px">
+        <div class="panel-subtitle">Arquivo</div>
+        <div class="panel-title">Histórico de Conteúdos</div>
+      </div>
+      <div id="historyGrid" style="display:flex; flex-direction:column; gap:12px;"></div>
+      <div id="historyEmpty" style="display:none; color:var(--text-muted); font-size:11px; letter-spacing:2px; text-transform:uppercase; margin-top:80px; text-align:center;">Sem conteúdos guardados ainda</div>
+    </div>
+
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SYSTEM_PROMPT = `És o assistente de criação de conteúdo de Patrício Ferreira, Solicitador e Partner na P&A Legal.
+
+SOBRE PATRÍCIO:
+- Especializado em arquitetura empresarial, holdings, pactos de sócios, SPVs e proteção de ativos
+- Marca pessoal: @patriciop_legal
+- Livro em escrita: "O Jogo das Empresas"
+- Público: empreendedores e gestores de PMEs
+
+REGRAS DE ESTILO (ABSOLUTO):
+- NUNCA usar bullet points, traços, listas com hífen
+- NUNCA usar emojis
+- NUNCA usar em-dashes (—) a meio de frases
+- NUNCA linguagem de coaching ou influencer
+- Tom editorial, provocatório, calmo, autoritário
+- Máximo ~150 palavras por caption
+- Uma ideia por peça, sem dispersão
+- Prosa fluida, não fragmentada
+- Sem hashtags nas captions geradas
+
+Responde SEMPRE em português de Portugal.
+Responde APENAS com JSON válido, sem markdown, sem backticks, sem texto adicional.`;
+
+let currentMode = 'caption';
+let currentResult = null;
+let history = JSON.parse(localStorage.getItem('pa_content_history') || '[]');
+
+const modes = {
+  caption:  { label: 'Caption · Reel',      title: 'Escrever uma caption'   },
+  carousel: { label: 'Carrossel',            title: 'Estruturar um carrossel'},
+  story:    { label: 'Stories',              title: 'Sequência de stories'   },
+  ideas:    { label: 'Ideias de Conteúdo',   title: 'Gerar ideias'           }
+};
+
+const modeLabels = { caption:'Caption', carousel:'Carrossel', story:'Stories', ideas:'Ideias' };
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + mode).classList.add('active');
+  document.querySelectorAll('[id^="form-"]').forEach(f => f.style.display = 'none');
+  document.getElementById('form-' + mode).style.display = 'block';
+  document.getElementById('modeLabel').textContent = modes[mode].label;
+  document.getElementById('modeTitle').textContent = modes[mode].title;
+  resetOutput();
+}
+
+function setView(view, btn) {
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('createView').style.display = view === 'create' ? 'flex' : 'none';
+  document.getElementById('historyView').style.display = view === 'history' ? 'block' : 'none';
+  if (view === 'history') renderHistoryView();
+}
+
+function toggleChip(el) { el.classList.toggle('selected'); }
+
+function getSelectedChips(container) {
+  return Array.from(container.querySelectorAll('.chip.selected')).map(c => c.textContent.trim());
+}
+
+function resetOutput() {
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('loadingState').classList.remove('visible');
+  document.getElementById('contentResult').classList.remove('visible');
+  document.getElementById('contentResult').innerHTML = '';
+  document.getElementById('outputLabel').textContent = 'Aguardando geração';
+  currentResult = null;
+}
+
+function showLoading() {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('loadingState').classList.add('visible');
+  document.getElementById('contentResult').classList.remove('visible');
+  document.getElementById('generateBtn').disabled = true;
+}
+
+function hideLoading() {
+  document.getElementById('loadingState').classList.remove('visible');
+  document.getElementById('generateBtn').disabled = false;
+}
+
+function buildPrompt() {
+  if (currentMode === 'caption') {
+    const topic = document.getElementById('caption-topic').value.trim();
+    if (!topic) { showToast('Escreve um tema primeiro'); return null; }
+    const toneEl = document.getElementById('form-caption');
+    const tone = getSelectedChips(toneEl).join(', ') || 'Editorial';
+    const hook = document.getElementById('caption-hook').value.trim();
+    const cta = document.getElementById('caption-cta').value;
+    return `Gera uma caption para Instagram para Patrício Ferreira sobre: "${topic}". Tom: ${tone}. ${hook ? 'Sugestão de gancho: ' + hook + '.' : ''} CTA: ${cta}.
+
+Responde APENAS com este JSON:
+{"hook":"primeira linha impactante (máx 15 palavras, sem ponto final)","body":"corpo da caption (máx 120 palavras, prosa editorial, sem bullets)","cta":"call to action (1 frase curta e natural)","nota":"sugestão de visual ou contexto (1 linha)"}`;
+  }
+
+  if (currentMode === 'carousel') {
+    const topic = document.getElementById('carousel-topic').value.trim();
+    if (!topic) { showToast('Escreve um tema primeiro'); return null; }
+    const num = document.getElementById('carousel-slides-num').value;
+    const structEl = document.getElementById('form-carousel');
+    const structure = getSelectedChips(structEl).join(', ') || 'Problema → Solução';
+    return `Estrutura um carrossel de ${num} slides para Instagram sobre: "${topic}". Estrutura: ${structure}.
+
+Responde APENAS com este JSON:
+{"titulo":"título editorial","slides":[{"numero":1,"label":"tipo de slide","titulo":"título do slide","texto":"texto principal (1-3 linhas)","nota":"orientação visual"}],"caption":"caption curta (máx 80 palavras)"}`;
+  }
+
+  if (currentMode === 'story') {
+    const context = document.getElementById('story-context').value.trim();
+    if (!context) { showToast('Descreve o contexto primeiro'); return null; }
+    const goal = document.getElementById('story-goal').value;
+    const count = document.getElementById('story-count').value;
+    const goals = { perfil:'visitas ao perfil', evento:'promover evento', conteudo:'destacar conteúdo', lead:'captar leads' };
+    return `Cria uma sequência de ${count} stories para Patrício Ferreira com objetivo: ${goals[goal]}. Contexto: "${context}".
+
+Responde APENAS com este JSON:
+{"stories":[{"numero":1,"tipo":"tipo de story","copy":"texto do story (curto, direto, sem emojis)","intencao":"o que este story deve fazer"}]}`;
+  }
+
+  if (currentMode === 'ideas') {
+    const focus = document.getElementById('ideas-focus').value.trim() || 'arquitetura empresarial, holdings, proteção de ativos';
+    const formatsEl = document.getElementById('form-ideas');
+    const formats = getSelectedChips(formatsEl).join(', ') || 'Carrossel, Reel';
+    const count = document.getElementById('ideas-count').value;
+    return `Gera ${count} ideias de conteúdo para @patriciop_legal sobre: ${focus}. Formatos: ${formats}.
+
+Responde APENAS com este JSON:
+{"ideias":[{"titulo":"título editorial","angulo":"perspetiva diferenciadora (1 frase)","formato":"formato sugerido","gancho":"primeira linha sugerida"}]}`;
+  }
+}
+
+async function generate() {
+  const userPrompt = buildPrompt();
+  if (!userPrompt) return;
+
+  showLoading();
+
+  try {
+    const response = await fetch('/.netlify/functions/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        system: SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: userPrompt }]
+      })
+    });
+
+    const data = await response.json();
+    const rawText = (data.content || []).map(i => i.text || '').join('');
+    const clean = rawText.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    hideLoading();
+    renderResult(parsed);
+    currentResult = { mode: currentMode, data: parsed };
+
+  } catch (err) {
+    hideLoading();
+    showToast('Erro ao gerar. Tenta novamente.');
+    console.error(err);
+  }
+}
+
+function renderResult(data) {
+  const container = document.getElementById('contentResult');
+  container.innerHTML = '';
+
+  if (currentMode === 'caption') {
+    document.getElementById('outputLabel').textContent = 'Caption gerada';
+    container.innerHTML = `
+      <div class="fade-in">
+        <div class="result-type-label">Caption · @patriciop_legal</div>
+        <div class="result-block">
+          <div class="result-block-label">Gancho <button class="copy-mini" onclick="copyText(this.dataset.t)" data-t="${esc(data.hook)}">Copiar</button></div>
+          <div class="result-text" style="font-style:italic;font-size:22px">${data.hook}</div>
+        </div>
+        <div class="result-block">
+          <div class="result-block-label">Corpo <button class="copy-mini" onclick="copyText(this.dataset.t)" data-t="${esc(data.body)}">Copiar</button></div>
+          <div class="result-text">${data.body}</div>
+        </div>
+        <div class="result-block">
+          <div class="result-block-label">Call to Action</div>
+          <div class="result-text-mono">${data.cta}</div>
+        </div>
+        ${data.nota ? `<div class="result-block"><div class="result-block-label">Nota visual</div><div class="result-text-mono" style="color:var(--text-muted)">${data.nota}</div></div>` : ''}
+      </div>`;
+  }
+
+  else if (currentMode === 'carousel') {
+    document.getElementById('outputLabel').textContent = `Carrossel — ${data.slides?.length || 0} slides`;
+    const slidesHTML = (data.slides || []).map(s => `
+      <div class="slide-card">
+        <div class="slide-num">${String(s.numero).padStart(2,'0')}</div>
+        <div class="slide-content">
+          <div class="slide-label">${s.label}</div>
+          <div class="slide-text">${s.titulo}</div>
+          <div class="slide-note">${s.texto}</div>
+          ${s.nota ? `<div class="slide-note" style="color:var(--text-muted);font-size:10px;margin-top:4px;text-transform:uppercase;letter-spacing:1px">${s.nota}</div>` : ''}
+        </div>
+      </div>`).join('');
+    container.innerHTML = `
+      <div class="fade-in">
+        <div class="result-type-label">Estrutura de Carrossel</div>
+        <div class="result-block" style="margin-bottom:8px">
+          <div class="result-block-label">Título</div>
+          <div class="result-text" style="font-style:italic">${data.titulo}</div>
+        </div>
+        <div class="carousel-slides">${slidesHTML}</div>
+        ${data.caption ? `<div class="result-block"><div class="result-block-label">Caption <button class="copy-mini" onclick="copyText(this.dataset.t)" data-t="${esc(data.caption)}">Copiar</button></div><div class="result-text">${data.caption}</div></div>` : ''}
+      </div>`;
+  }
+
+  else if (currentMode === 'story') {
+    document.getElementById('outputLabel').textContent = `${data.stories?.length || 0} stories`;
+    const storiesHTML = (data.stories || []).map(s => `
+      <div class="story-card">
+        <div class="story-num">${s.numero}</div>
+        <div><div class="story-text">${s.copy}</div><div class="story-intent">${s.tipo} — ${s.intencao}</div></div>
+      </div>`).join('');
+    container.innerHTML = `<div class="fade-in"><div class="result-type-label">Sequência de Stories</div><div class="story-sequence">${storiesHTML}</div></div>`;
+  }
+
+  else if (currentMode === 'ideas') {
+    document.getElementById('outputLabel').textContent = `${data.ideias?.length || 0} ideias`;
+    const ideasHTML = (data.ideias || []).map((idea, i) => `
+      <div class="idea-card" onclick="useIdea('${esc(idea.titulo)}','${esc(idea.gancho)}')">
+        <div class="idea-card-num">${String(i+1).padStart(2,'0')}</div>
+        <div class="idea-card-text">${idea.titulo}</div>
+        <div class="slide-note" style="margin-top:8px">${idea.angulo}</div>
+        <div class="idea-card-format">${idea.formato}</div>
+      </div>`).join('');
+    container.innerHTML = `<div class="fade-in"><div class="result-type-label">Ideias de Conteúdo</div><div class="ideas-grid">${ideasHTML}</div></div>`;
+  }
+
+  container.classList.add('visible');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/\n/g,' ');
+}
+
+function useIdea(titulo, gancho) {
+  setMode('caption');
+  document.getElementById('caption-topic').value = titulo;
+  document.getElementById('caption-hook').value = gancho;
+  showToast('Ideia carregada → Caption');
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copiado'));
+}
+
+function copyAll() {
+  if (!currentResult) return;
+  const d = currentResult.data;
+  let text = '';
+  if (currentMode === 'caption') text = `${d.hook}\n\n${d.body}\n\n${d.cta}`;
+  else if (currentMode === 'carousel') text = `${d.titulo}\n\n` + (d.slides||[]).map(s => `[${s.numero}] ${s.titulo}\n${s.texto}`).join('\n\n');
+  else if (currentMode === 'story') text = (d.stories||[]).map(s => `[${s.numero}] ${s.copy}`).join('\n\n');
+  else if (currentMode === 'ideas') text = (d.ideias||[]).map((idea,i) => `${i+1}. ${idea.titulo}\n${idea.angulo}`).join('\n\n');
+  navigator.clipboard.writeText(text).then(() => showToast('Conteúdo copiado'));
+}
+
+function saveToHistory() {
+  if (!currentResult) return;
+  const item = { id: Date.now(), mode: currentResult.mode, data: currentResult.data, date: new Date().toLocaleDateString('pt-PT'), preview: getPreview(currentResult) };
+  history.unshift(item);
+  if (history.length > 50) history = history.slice(0,50);
+  localStorage.setItem('pa_content_history', JSON.stringify(history));
+  renderHistoryList();
+  showToast('Guardado');
+}
+
+function getPreview(result) {
+  const d = result.data;
+  if (result.mode === 'caption') return d.hook || '';
+  if (result.mode === 'carousel') return d.titulo || '';
+  if (result.mode === 'story') return d.stories?.[0]?.copy || '';
+  if (result.mode === 'ideas') return d.ideias?.[0]?.titulo || '';
+  return '';
+}
+
+function renderHistoryList() {
+  document.getElementById('historyList').innerHTML = history.slice(0,8).map(item => `
+    <div class="history-item" onclick="loadHistoryItem(${item.id})">
+      <div class="history-type">${modeLabels[item.mode]}</div>
+      <div class="history-title">${item.preview}</div>
+      <div class="history-date">${item.date}</div>
+    </div>`).join('');
+}
+
+function loadHistoryItem(id) {
+  const item = history.find(h => h.id === id);
+  if (!item) return;
+  setMode(item.mode);
+  currentResult = { mode: item.mode, data: item.data };
+  renderResult(item.data);
+  document.getElementById('historyView').style.display = 'none';
+  document.getElementById('createView').style.display = 'flex';
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+  document.querySelector('.nav-link').classList.add('active');
+}
+
+function renderHistoryView() {
+  const grid = document.getElementById('historyGrid');
+  const empty = document.getElementById('historyEmpty');
+  if (!history.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  grid.innerHTML = history.map(item => `
+    <div class="result-block" style="cursor:pointer" onclick="loadHistoryItem(${item.id})">
+      <div class="result-block-label">
+        <span>${modeLabels[item.mode]} · ${item.date}</span>
+        <button class="copy-mini" onclick="event.stopPropagation();deleteHistory(${item.id})">Apagar</button>
+      </div>
+      <div class="result-text" style="font-size:16px;font-style:italic">${item.preview}</div>
+    </div>`).join('');
+}
+
+function deleteHistory(id) {
+  history = history.filter(h => h.id !== id);
+  localStorage.setItem('pa_content_history', JSON.stringify(history));
+  renderHistoryList();
+  renderHistoryView();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+renderHistoryList();
+</script>
+</body>
+</html>
