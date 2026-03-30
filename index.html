@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patrício IA — Conteúdo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="lockScreen">
+  <div class="lock-initial">P</div>
+  <div class="lock-subtitle">Patrício IA</div>
+  <div class="lock-quote" id="lqText"></div>
+  <div class="lock-form">
+    <input type="password" class="lock-input" id="lkInput" placeholder="••••••••">
+    <button class="lock-btn" onclick="doUnlock()">Entrar</button>
+    <div class="lock-err" id="lkErr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <a href="hoje.html" class="topbar-logo">P</a>
+    <nav id="mainNav"></nav>
+    <div class="topbar-space"></div>
+    <div class="search-wrapper">
+      <button class="search-btn" id="globalSearchBtn">⌕ Pesquisar</button>
+      <div class="search-box" id="globalSearchBox">
+        <input class="search-input" id="globalSearchInput" placeholder="Pesquisar em todo o site...">
+        <div class="search-results" id="globalSearchResults"></div>
+      </div>
+    </div>
+    <div class="cost-row" style="margin-left:12px">
+      <div class="cost-pill"><span class="cost-lbl">Sessão</span><span class="cost-val" id="cSess">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Hoje</span><span class="cost-val" id="cDay">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Mês</span><span class="cost-val" id="cMonth">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Total</span><span class="cost-val" id="cTotal">€0.000</span></div>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div class="sidebar" id="sb">
+      <div class="sb-head"><button class="sb-toggle" onclick="toggleSB()">☰</button></div>
+      <div class="sb-section">Principal</div>
+      <button class="nav-i active" onclick="goTo('estrategico')">Estratégico</button>
+      <button class="nav-i" onclick="goTo('criar')">Criar</button>
+      <button class="nav-i" onclick="goTo('noticias')">Notícias & Pesquisa</button>
+      <button class="nav-i" onclick="goTo('conhecimento')">Conhecimento</button>
+      <div class="sb-div"></div>
+      <div class="sb-section">Gestão</div>
+      <button class="nav-i" onclick="goTo('calendario')">Calendário</button>
+      <button class="nav-i" onclick="goTo('ideias')">Ideias</button>
+      <button class="nav-i" onclick="goTo('arquivo')">Arquivo</button>
+      <button class="nav-i" onclick="goTo('stats')">Estatísticas</button>
+    </div>
+
+    <div class="main">
+
+      <!-- ESTRATÉGICO -->
+      <div class="section on" id="s-estrategico">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">IA Consultora</div><div class="page-title">Estratégico</div></div>
+          <div class="page-actions">
+            <button class="search-toggle" id="searchToggle" onclick="toggleSearch()" style="background:none;border:1.5px solid var(--border);padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-family:Inter,sans-serif;color:var(--text-muted);transition:all 0.12s">Pesquisa web</button>
+            <button class="btn-secondary" onclick="clearChat()">Nova conversa</button>
+          </div>
+        </div>
+        <div class="quick-action-wrap">
+          <span style="font-size:12px;color:var(--text-muted);font-weight:500">Ação rápida:</span>
+          <select class="f-select quick-action-select" id="quickActionSelect" onchange="applyQuickAction()">
+            <option value="">Escolhe uma ação...</option>
+            <option value="resumo">Resumo do dia — O que publicar hoje</option>
+            <option value="temas">Temas da semana — Com base na tua área</option>
+            <option value="posicionamento">Posicionamento — Análise e recomendação</option>
+            <option value="comentario">Comentário difícil — Como responder</option>
+            <option value="diferenciacao">Diferenciação — O que ninguém está a fazer</option>
+            <option value="analise">Análise de post — O que funcionou</option>
+          </select>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="c-msg"><div class="c-av av-ia">IA</div><div class="c-bubble bubble-ia">Bom dia, Patrício. Estou pronto. O que está na agenda hoje?</div></div>
+          </div>
+          <div class="chat-foot">
+            <textarea class="c-input" id="chatIn" placeholder="Escreve aqui..." rows="1" onkeydown="chatKey(event)" oninput="autoH(this)"></textarea>
+            <button class="btn-primary" onclick="sendChat()" id="chatBtn">Enviar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CRIAR -->
+      <div class="section" id="s-criar">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Conteúdo</div><div class="page-title">Criar</div></div>
+          <div class="page-actions">
+            <select class="f-select" id="fmtSel" style="width:185px" onchange="buildForm()">
+              <option value="caption">Caption / Reel</option>
+              <option value="carrossel">Carrossel</option>
+              <option value="stories">Stories</option>
+              <option value="foto">Legenda por Foto</option>
+              <option value="artigo">Artigo Jornal / Site</option>
+              <option value="linkedin">Artigo LinkedIn</option>
+              <option value="citacao">Citação</option>
+            </select>
+            <button class="btn-secondary" onclick="saveDraft()">Guardar rascunho</button>
+            <button class="btn-secondary" onclick="loadDraftModal()">Rascunhos</button>
+            <button class="btn-secondary" onclick="copyOutput()">Copiar</button>
+            <button class="btn-secondary" onclick="saveOutput()">Guardar</button>
+            <button class="btn-secondary" onclick="scheduleOutput()">Agendar</button>
+          </div>
+        </div>
+        <div class="two-pane">
+          <div class="pane-l" id="formPanel"></div>
+          <div class="pane-r" id="outputPanel">
+            <div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">O conteúdo aparece aqui</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTÍCIAS -->
+      <div class="section" id="s-noticias">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Google RSS</div><div class="page-title">Notícias & Tendências</div></div>
+          <button class="btn-primary" onclick="fetchNews()" id="newsBtn">Atualizar</button>
+        </div>
+        <div class="two-pane">
+          <div class="pane-l">
+            <div class="f-group"><div class="f-lbl">Temas</div><div id="newsThemes" class="chips"></div></div>
+            <div class="f-group"><div class="f-lbl">Pesquisa personalizada</div><textarea class="f-textarea" id="newsQuery" placeholder="Ex: holding portugal lei 2025..."></textarea></div>
+            <button class="btn-primary full" onclick="fetchNews()">Pesquisar</button>
+          </div>
+          <div class="pane-r" id="newsOutput"><div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">As notícias aparecem aqui</div></div></div>
+        </div>
+      </div>
+
+      <!-- CONHECIMENTO -->
+      <div class="section" id="s-conhecimento">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Base de Dados</div><div class="page-title">Conhecimento</div></div>
+          <div class="page-actions">
+            <button class="btn-secondary" onclick="addKBText()">Adicionar nota</button>
+            <button class="btn-primary" onclick="document.getElementById('kbFile').click()">Adicionar PDF</button>
+            <input type="file" id="kbFile" style="display:none" accept=".pdf,.txt" onchange="handleKB(event)">
+          </div>
+        </div>
+        <div class="scroll-body"><div id="kbList"></div><div id="kbEmpty" style="text-align:center;padding:80px 0;color:var(--text-light);font-size:13px">Sem documentos.</div></div>
+      </div>
+
+      <!-- CALENDÁRIO -->
+      <div class="section" id="s-calendario">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Planeamento</div><div class="page-title" id="calTitle">—</div></div>
+          <div class="page-actions">
+            <div class="chips" id="calFilter"><button class="chip on" onclick="setCalFilter(this,'all')">Todos</button><button class="chip" onclick="setCalFilter(this,'instagram')">Instagram</button><button class="chip" onclick="setCalFilter(this,'linkedin')">LinkedIn</button><button class="chip" onclick="setCalFilter(this,'jornal')">Jornal</button></div>
+            <button class="btn-secondary" onclick="calMove(-1)">‹</button><button class="btn-secondary" onclick="calNow()">Hoje</button><button class="btn-secondary" onclick="calMove(1)">›</button>
+            <button class="btn-secondary" onclick="getAICalSuggestions()">Sugestões IA</button>
+            <button class="btn-primary" onclick="openModal('mCal')">+ Post</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0">
+          <div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Dom</div><div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Seg</div><div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Ter</div><div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Qua</div><div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Qui</div><div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Sex</div><div style="padding:8px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Sáb</div>
+        </div>
+        <div id="calGrid" style="flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border)"></div>
+      </div>
+
+      <!-- IDEIAS -->
+      <div class="section" id="s-ideias">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Banco</div><div class="page-title">Ideias</div></div>
+          <button class="btn-primary" onclick="genIdeas()" id="ideasBtn">Gerar ideias</button>
+        </div>
+        <div class="two-pane">
+          <div class="pane-l">
+            <div class="f-group"><div class="f-lbl">Temas</div><div id="idThemes" class="chips"></div></div>
+            <div class="f-group"><div class="f-lbl">Tema personalizado</div><input class="f-input" id="idCustomTheme" placeholder="Escreve um tema específico..."></div>
+            <div class="f-group"><div class="f-lbl">Formatos</div><div class="chips"><button class="chip on" onclick="toggleChip(this)">Carrossel</button><button class="chip on" onclick="toggleChip(this)">Caption</button><button class="chip" onclick="toggleChip(this)">Stories</button><button class="chip" onclick="toggleChip(this)">LinkedIn</button><button class="chip" onclick="toggleChip(this)">Citação</button></div></div>
+            <div class="f-group"><div class="f-lbl">Quantidade</div><select class="f-select" id="idCount"><option value="6">6</option><option value="10" selected>10</option><option value="15">15</option></select></div>
+            <div class="f-group"><div class="f-lbl">Contexto</div><textarea class="f-textarea" id="idCtx" placeholder="Evento, tema atual..."></textarea></div>
+          </div>
+          <div class="pane-r" id="ideasOut"><div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">As ideias aparecem aqui</div></div></div>
+        </div>
+      </div>
+
+      <!-- ARQUIVO -->
+      <div class="section" id="s-arquivo">
+        <div class="page-head"><div class="page-head-left"><div class="page-eye">Histórico</div><div class="page-title">Arquivo</div></div></div>
+        <div class="scroll-body">
+          <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+            <input class="f-input" style="width:200px" placeholder="Pesquisar..." id="arcSearch" oninput="renderArc()">
+            <select class="f-select" style="width:140px" id="arcFmt" onchange="renderArc()"><option value="">Todos os formatos</option><option value="caption">Caption</option><option value="carrossel">Carrossel</option><option value="stories">Stories</option><option value="artigo">Artigo</option><option value="linkedin">LinkedIn</option><option value="citacao">Citação</option></select>
+            <select class="f-select" style="width:150px" id="arcSort" onchange="renderArc()"><option value="date">Data (recente)</option><option value="format">Formato</option></select>
+          </div>
+          <div id="arcList"></div>
+          <div id="arcEmpty" style="display:none;text-align:center;padding:60px 0;color:var(--text-light);font-size:13px">Sem conteúdos guardados</div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="section" id="s-stats">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Análise</div><div class="page-title">Estatísticas</div></div>
+          <button class="btn-secondary" onclick="openModal('mMetric')">+ Métricas reais</button>
+        </div>
+        <div class="scroll-body">
+          <div class="stats-grid" id="statsGrid"></div>
+          <div class="divider"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px" id="statsCharts"></div>
+          <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--gold);margin-bottom:12px">Desempenho por Post</div>
+          <table class="p-table"><thead><tr><th>Post</th><th>Plataforma</th><th>Data</th><th>Previsão IA</th><th>Resultado</th><th>Alcance</th></tr></thead><tbody id="perfBody"></tbody></table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="mCal"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Agendar Post</div><button class="modal-x" onclick="closeModal('mCal')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Título</div><input class="f-input" id="cTitle" placeholder="Tema do post..."></div>
+    <div class="grid-2"><div class="f-group"><div class="f-lbl">Data</div><input type="date" class="f-input" id="cDate"></div><div class="f-group"><div class="f-lbl">Hora</div><input type="time" class="f-input" id="cTime" value="09:00"></div></div>
+    <div class="grid-2"><div class="f-group"><div class="f-lbl">Plataforma</div><select class="f-select" id="cPlat"><option value="instagram">Instagram</option><option value="linkedin">LinkedIn</option><option value="jornal">Jornal</option></select></div><div class="f-group"><div class="f-lbl">Estado</div><select class="f-select" id="cStatus"><option value="por-fazer">Por Fazer</option><option value="agendado">Agendado</option><option value="publicado">Publicado</option></select></div></div>
+    <div class="f-group"><div class="f-lbl">Texto (opcional)</div><textarea class="f-textarea" id="cContent" placeholder="Cola o conteúdo gerado..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mCal')">Cancelar</button><button class="btn-primary" onclick="saveCalPost()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mScheduleCreate"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Agendar no Calendário</div><button class="modal-x" onclick="closeModal('mScheduleCreate')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Título</div><input class="f-input" id="scTitle" placeholder="Título do post..."></div>
+    <div class="grid-2"><div class="f-group"><div class="f-lbl">Data</div><input type="date" class="f-input" id="scDate"></div><div class="f-group"><div class="f-lbl">Hora</div><input type="time" class="f-input" id="scTime" value="09:00"></div></div>
+    <div class="f-group"><div class="f-lbl">Plataforma</div><select class="f-select" id="scPlat"><option value="instagram">Instagram</option><option value="linkedin">LinkedIn</option><option value="jornal">Jornal</option></select></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mScheduleCreate')">Cancelar</button><button class="btn-primary" onclick="confirmSchedule()">Agendar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mDrafts"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Rascunhos</div><button class="modal-x" onclick="closeModal('mDrafts')">✕</button></div>
+  <div class="modal-body" id="draftsList" style="max-height:400px;overflow-y:auto"></div>
+</div></div>
+
+<div class="modal-bg" id="mMetric"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Métricas Reais</div><button class="modal-x" onclick="closeModal('mMetric')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Post</div><input class="f-input" id="mPost" placeholder="Título..."></div>
+    <div class="f-group"><div class="f-lbl">Plataforma</div><select class="f-select" id="mPlat"><option value="instagram">Instagram</option><option value="linkedin">LinkedIn</option><option value="jornal">Jornal</option></select></div>
+    <div class="grid-3"><div class="f-group"><div class="f-lbl">Alcance</div><input class="f-input" id="mReach" type="number" placeholder="0"></div><div class="f-group"><div class="f-lbl">Likes</div><input class="f-input" id="mLikes" type="number" placeholder="0"></div><div class="f-group"><div class="f-lbl">Comentários</div><input class="f-input" id="mComm" type="number" placeholder="0"></div></div>
+    <div class="f-group"><div class="f-lbl">Avaliação</div><select class="f-select" id="mRating"><option value="fraco">Fraco</option><option value="medio">Médio</option><option value="bom" selected>Bom</option><option value="excelente">Excelente</option></select></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mMetric')">Cancelar</button><button class="btn-primary" onclick="saveMetric()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mKB"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Adicionar Nota</div><button class="modal-x" onclick="closeModal('mKB')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Título</div><input class="f-input" id="kbTitle" placeholder="Nome..."></div>
+    <div class="f-group"><div class="f-lbl">Tipo</div><select class="f-select" id="kbType"><option value="nota">Nota</option><option value="artigo">Artigo</option><option value="transcricao">Transcrição</option><option value="livro">Fragmento do livro</option><option value="outro">Outro</option></select></div>
+    <div class="f-group"><div class="f-lbl">Conteúdo</div><textarea class="f-textarea" id="kbContent" style="min-height:160px" placeholder="Cola o texto..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mKB')">Cancelar</button><button class="btn-primary" onclick="saveKB()">Guardar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<script src="shared.js"></script>
+<script>
+let useSearch = false, curResult = null, calFilter = 'all', calDate = new Date();
+
+initLock(() => {
+  buildNav('index.html');
+  updateCostDisplay();
+  initGlobalSearch();
+  renderThemeChips();
+  renderKB();
+  renderCal();
+  renderArc();
+  renderStats();
+  buildForm();
+  const chat = PA.get('chat', []);
+  if (chat.length) { document.getElementById('chatMsgs').innerHTML = ''; chat.forEach(m => appendMsg(m.role, m.content)); }
+});
+
+function goTo(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.nav-i').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('on');
+  document.querySelector(`[onclick="goTo('${id}')"]`).classList.add('active');
+}
+let sbOpen = true;
+function toggleSB() { sbOpen = !sbOpen; document.getElementById('sb').classList.toggle('closed', !sbOpen); }
+
+// ── SEARCH TOGGLE ──
+function toggleSearch() {
+  useSearch = !useSearch;
+  const btn = document.getElementById('searchToggle');
+  btn.style.background = useSearch ? '#eef1f8' : 'none';
+  btn.style.color = useSearch ? 'var(--navy)' : 'var(--text-muted)';
+  btn.style.borderColor = useSearch ? 'var(--navy)' : 'var(--border)';
+}
+
+// ── QUICK ACTIONS ──
+const QP = {
+  resumo: 'Dá-me um resumo estratégico do que devo publicar hoje. Sugere o formato e o ângulo mais relevante com base nos meus temas e posicionamento.',
+  temas: 'Pesquisa e sugere os 5 temas mais estratégicos para esta semana. Considera o meu posicionamento e tendências atuais.',
+  posicionamento: 'Analisa o meu posicionamento e diz-me o que reforçar, abandonar e onde estou a deixar espaço para concorrentes.',
+  comentario: 'Tenho um comentário difícil. Vou descrever o contexto — diz-me como responder para reforçar autoridade.',
+  diferenciacao: 'Em que me devo diferenciar mais nos próximos 30 dias? O que a concorrência não está a fazer?',
+  analise: 'Vou partilhar um post. Analisa o impacto e diz-me o que funcionou e o que melhorar.',
+};
+
+function applyQuickAction() {
+  const sel = document.getElementById('quickActionSelect');
+  const val = sel.value;
+  if (!val) return;
+  document.getElementById('chatIn').value = QP[val];
+  sel.value = '';
+  document.getElementById('chatIn').focus();
+}
+
+// ── CHAT ──
+function appendMsg(role, content) {
+  const w = document.getElementById('chatMsgs');
+  const d = document.createElement('div');
+  d.className = `c-msg fade-in ${role === 'user' ? 'u' : ''}`;
+  d.innerHTML = `<div class="c-av ${role==='user'?'av-p':'av-ia'}">${role==='user'?'P':'IA'}</div><div class="c-bubble ${role==='user'?'bubble-u':'bubble-ia'}">${renderMd(content)}</div>`;
+  w.appendChild(d); w.scrollTop = w.scrollHeight;
+}
+
+async function sendChat() {
+  const el = document.getElementById('chatIn');
+  const txt = el.value.trim(); if (!txt) return;
+  el.value = ''; autoH(el);
+  const chat = PA.get('chat', []);
+  appendMsg('user', txt);
+  chat.push({ role: 'user', content: txt });
+  const td = document.createElement('div');
+  td.className = 'c-msg';
+  td.innerHTML = '<div class="c-av av-ia">IA</div><div class="c-bubble bubble-ia"><div class="spin"></div></div>';
+  document.getElementById('chatMsgs').appendChild(td);
+  document.getElementById('chatMsgs').scrollTop = 99999;
+  document.getElementById('chatBtn').disabled = true;
+  try {
+    const data = await callAPI(getSys(), chat, 1500, useSearch);
+    td.remove();
+    const reply = getReply(data);
+    appendMsg('assistant', reply);
+    chat.push({ role: 'assistant', content: reply });
+    if (chat.length > 40) chat.splice(0, chat.length - 40);
+    PA.set('chat', chat);
+  } catch(e) { td.remove(); appendMsg('assistant', 'Erro de ligação. Tenta novamente.'); }
+  document.getElementById('chatBtn').disabled = false;
+}
+
+function clearChat() {
+  PA.set('chat', []);
+  document.getElementById('chatMsgs').innerHTML = '<div class="c-msg fade-in"><div class="c-av av-ia">IA</div><div class="c-bubble bubble-ia">Nova conversa iniciada.</div></div>';
+}
+function chatKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); } }
+
+// ── CREATE ──
+function buildForm() {
+  const fmt = document.getElementById('fmtSel').value;
+  const tones = PA.get('tones', ['Editorial','Provocatório','Educativo','Direto','Técnico','Narrativo']);
+  const toneChips = tones.map(t => `<button class="chip ${['Editorial','Provocatório'].includes(t)?'on':''}" onclick="toggleChip(this)">${t}</button>`).join('');
+  const kb = PA.get('kb', []);
+  const kbOpts = kb.map(d => `<option value="${d.id}">${d.name.slice(0,38)}</option>`).join('');
+  const kbSel = `<div class="f-group"><div class="f-lbl">Usar conhecimento</div><select class="f-select" id="fkb"><option value="">Nenhum</option>${kbOpts}</select></div>`;
+
+  const FORMS = {
+    caption: `<div class="f-group"><div class="f-lbl">Tema</div><textarea class="f-textarea" id="ft" placeholder="Ex: Por que a maioria das empresas não tem holding..."></textarea></div><div class="f-group"><div class="f-lbl">Tom</div><div class="chips">${toneChips}</div></div><div class="f-group"><div class="f-lbl">Gancho (opcional)</div><input class="f-input" id="fh" placeholder="Primeira linha..."></div><div class="f-group"><div class="f-lbl">CTA</div><select class="f-select" id="fcta"><option value="nenhum">Sem CTA</option><option value="salva">Guarda este post</option><option value="comenta">Comenta</option><option value="segue">Segue para mais</option><option value="link">Link na bio</option></select></div>${kbSel}`,
+    carrossel: `<div class="f-group"><div class="f-lbl">Tema</div><textarea class="f-textarea" id="ft" placeholder="Ex: As 4 camadas de proteção de uma holding..."></textarea></div><div class="f-group"><div class="f-lbl">Slides</div><select class="f-select" id="fsl"><option value="5">5</option><option value="7" selected>7</option><option value="10">10</option></select></div><div class="f-group"><div class="f-lbl">Estrutura</div><div class="chips"><button class="chip on" onclick="toggleChip(this)">Problema → Solução</button><button class="chip" onclick="toggleChip(this)">Lista</button><button class="chip" onclick="toggleChip(this)">Antes → Depois</button><button class="chip" onclick="toggleChip(this)">Framework</button></div></div>${kbSel}`,
+    stories: `<div class="f-group"><div class="f-lbl">Objetivo</div><select class="f-select" id="fg"><option value="perfil">Visitas ao perfil</option><option value="evento">Promover evento</option><option value="conteudo">Destacar conteúdo</option><option value="lead">Captar leads</option></select></div><div class="f-group"><div class="f-lbl">Contexto</div><textarea class="f-textarea" id="ft" placeholder="O que queres comunicar..."></textarea></div><div class="f-group"><div class="f-lbl">Número</div><select class="f-select" id="fcnt"><option value="4">4</option><option value="6" selected>6</option><option value="8">8</option></select></div>`,
+    foto: `<div class="f-group"><div class="f-lbl">Descrição da foto</div><textarea class="f-textarea" id="ft" placeholder="Descreve o que está na foto..."></textarea></div><div class="f-group"><div class="f-lbl">Mensagem</div><textarea class="f-textarea" id="fm" placeholder="Ideia central..."></textarea></div><div class="f-group"><div class="f-lbl">Tom</div><div class="chips">${toneChips}</div></div>`,
+    artigo: `<div class="f-group"><div class="f-lbl">Tema</div><textarea class="f-textarea" id="ft" placeholder="Ex: Porque as PMEs precisam de uma holding..."></textarea></div><div class="f-group"><div class="f-lbl">Extensão</div><select class="f-select" id="flen" onchange="document.getElementById('fcw-w').style.display=this.value==='custom'?'block':'none'"><option value="800">Curto (até 800 palavras)</option><option value="1500" selected>Médio (800–1500)</option><option value="2500">Longo (1500+)</option><option value="custom">Personalizado</option></select></div><div id="fcw-w" style="display:none" class="f-group"><div class="f-lbl">Palavras</div><input class="f-input" id="fcw" type="number" placeholder="Ex: 1200"></div><div class="f-group"><div class="f-lbl">Publicação alvo</div><input class="f-input" id="fpub" placeholder="Ex: Jornal de Negócios..."></div>${kbSel}`,
+    linkedin: `<div class="f-group"><div class="f-lbl">Tema</div><textarea class="f-textarea" id="ft" placeholder="Ex: O erro que 90% dos sócios cometem..."></textarea></div><div class="f-group"><div class="f-lbl">Formato</div><select class="f-select" id="fff"><option value="opiniao">Opinião</option><option value="analise">Análise técnica</option><option value="narrativa">Narrativa com caso prático</option></select></div><div class="f-group"><div class="f-lbl">Tom</div><div class="chips">${toneChips}</div></div>${kbSel}`,
+    citacao: `<div class="f-group"><div class="f-lbl">Tema</div><textarea class="f-textarea" id="ft" placeholder="Ex: O verdadeiro custo de não ter uma holding..."></textarea></div><div class="f-group"><div class="f-lbl">Estilo</div><div class="chips"><button class="chip on" onclick="toggleChip(this)">Sentenciosa</button><button class="chip" onclick="toggleChip(this)">Provocatória</button><button class="chip" onclick="toggleChip(this)">Filosófica</button></div></div>`,
+  };
+
+  document.getElementById('formPanel').innerHTML = (FORMS[fmt]||'') + `<button class="btn-primary full" style="margin-top:4px" onclick="genCreate()" id="genBtn">Gerar conteúdo</button>`;
+  document.getElementById('outputPanel').innerHTML = '<div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">O conteúdo aparece aqui</div></div>';
+  curResult = null;
+
+  // Load draft if exists
+  const draft = PA.get('draft_' + fmt, null);
+  if (draft) {
+    setTimeout(() => {
+      if (document.getElementById('ft') && draft.topic) document.getElementById('ft').value = draft.topic;
+    }, 50);
+  }
+}
+
+// ── DRAFTS ──
+function saveDraft() {
+  const fmt = document.getElementById('fmtSel').value;
+  const topic = document.getElementById('ft')?.value || '';
+  if (!topic) return toast('Sem conteúdo para guardar');
+  const draft = { fmt, topic, result: curResult, date: new Date().toISOString() };
+  const all = PA.get('drafts', []); all.unshift(draft); if (all.length > 20) all.pop();
+  PA.set('drafts', all); PA.set('draft_' + fmt, draft);
+  toast('Rascunho guardado');
+}
+
+function loadDraftModal() {
+  const drafts = PA.get('drafts', []);
+  const list = document.getElementById('draftsList');
+  if (!drafts.length) { list.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-light);font-size:13px">Sem rascunhos</div>'; }
+  else list.innerHTML = drafts.map((d,i) => `<div style="padding:12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background=''" onclick="loadDraft(${i})"><div style="font-size:11px;color:var(--gold);margin-bottom:4px">${d.fmt} · ${new Date(d.date).toLocaleDateString('pt-PT')}</div><div style="font-size:13px;color:var(--text)">${d.topic.slice(0,80)}</div></div>`).join('');
+  openModal('mDrafts');
+}
+
+function loadDraft(i) {
+  const d = PA.get('drafts', [])[i]; if (!d) return;
+  document.getElementById('fmtSel').value = d.fmt; buildForm();
+  setTimeout(() => { if (document.getElementById('ft')) document.getElementById('ft').value = d.topic; }, 50);
+  if (d.result) { curResult = d.result; setTimeout(() => renderCreate(d.result.fmt, d.result.data ? JSON.stringify(d.result.data) : d.result.text, d.result.topic), 100); }
+  closeModal('mDrafts'); toast('Rascunho carregado');
+}
+
+// ── GENERATE ──
+async function genCreate() {
+  const fmt = document.getElementById('fmtSel').value;
+  const topic = document.getElementById('ft')?.value.trim();
+  if (!topic) { toast('Escreve um tema primeiro'); return; }
+  const btn = document.getElementById('genBtn'); btn.disabled = true;
+  document.getElementById('outputPanel').innerHTML = '<div class="loading-wrap"><div class="spin"></div><div class="loading-txt">A gerar conteúdo</div></div>';
+
+  let kbCtx = '';
+  const kbVal = document.getElementById('fkb')?.value;
+  if (kbVal) { const kb = PA.get('kb',[]); const d = kb.find(x => String(x.id) === kbVal); if(d && d.status === 'success') kbCtx = `\n\nREFERÊNCIA:\n${(d.content||'').slice(0,3000)}`; }
+
+  const chips = Array.from(document.querySelectorAll('#formPanel .chip.on')).map(c=>c.textContent.trim()).join(', ');
+  let prompt = '';
+
+  if (fmt==='caption') {
+    const hook=document.getElementById('fh')?.value||'', cta=document.getElementById('fcta')?.value||'nenhum';
+    prompt=`Gera uma caption para Instagram. Tema: "${topic}". Tom: ${chips}. ${hook?'Gancho: '+hook+'.':''} CTA: ${cta}.${kbCtx}\n\nResponde APENAS com JSON:\n{"hook":"primeira linha (máx 15 palavras, sem ponto final)","body":"corpo (máx 120 palavras, prosa editorial, sem bullets)","cta":"call to action (1 frase)","nota":"sugestão visual","canva":"blocos para Canva: TÍTULO: [título do post] | CORPO: [texto principal] | CTA: [call to action]"}`;
+  } else if (fmt==='carrossel') {
+    const n=document.getElementById('fsl')?.value||'7';
+    prompt=`Estrutura carrossel de ${n} slides. Tema: "${topic}". Estrutura: ${chips}.${kbCtx}\n\nResponde APENAS com JSON:\n{"titulo":"título editorial","slides":[{"numero":1,"label":"tipo","titulo":"título","texto":"texto 1-3 linhas","nota":"visual"}],"caption":"caption curta","canva":"prompt para Canva: [descreve cada slide com título e texto para copiar]"}`;
+  } else if (fmt==='stories') {
+    const goal=document.getElementById('fg')?.value, cnt=document.getElementById('fcnt')?.value||'6';
+    prompt=`Cria ${cnt} stories. Objetivo: ${goal}. Contexto: "${topic}".\n\nResponde APENAS com JSON:\n{"stories":[{"numero":1,"tipo":"tipo","copy":"texto curto sem emojis","intencao":"objetivo"}]}`;
+  } else if (fmt==='foto') {
+    const msg=document.getElementById('fm')?.value||'';
+    prompt=`Legenda foto Instagram. Foto: "${topic}". Mensagem: "${msg}". Tom: ${chips}.\n\nResponde APENAS com JSON:\n{"hook":"primeira linha","body":"legenda (máx 120 palavras)","cta":"CTA opcional","canva":"LEGENDA: [hook] | [body] | [cta]"}`;
+  } else if (fmt==='artigo') {
+    const lenEl=document.getElementById('flen'), len=lenEl?.value==='custom'?(document.getElementById('fcw')?.value+' palavras'):(lenEl?.value+' palavras'), pub=document.getElementById('fpub')?.value||'';
+    prompt=`Artigo de opinião de ${len}${pub?' para '+pub:''}. Tema: "${topic}".${kbCtx}\n\nEscreve o artigo completo em prosa. Tom editorial, sem bullets. Inclui título e subtítulo.`;
+  } else if (fmt==='linkedin') {
+    const ff=document.getElementById('fff')?.value;
+    prompt=`Artigo LinkedIn, formato ${ff}, tom ${chips}. Tema: "${topic}".${kbCtx}\n\nEscreve o artigo completo. Gancho forte. Prosa fluida. Termina com reflexão.`;
+  } else if (fmt==='citacao') {
+    prompt=`Gera 3 citações, estilo ${chips}. Tema: "${topic}".\n\nResponde APENAS com JSON:\n{"citacoes":[{"texto":"frase completa","contexto":"quando usar"}]}`;
+  }
+
+  try {
+    const data = await callAPI(getSys(), [{role:'user',content:prompt}], 2000);
+    btn.disabled = false;
+    renderCreate(fmt, getReply(data), topic);
+  } catch(e) { btn.disabled = false; document.getElementById('outputPanel').innerHTML = '<div class="empty-wrap"><div class="empty-txt">Erro. Tenta novamente.</div></div>'; }
+}
+
+function renderCreate(fmt, raw, topic) {
+  const out = document.getElementById('outputPanel');
+  if (['artigo','linkedin'].includes(fmt)) {
+    curResult = {fmt, text:raw, topic};
+    out.innerHTML = `<div class="fade-in"><div class="card"><div class="card-label">${fmt==='artigo'?'Artigo':'LinkedIn'}</div><div class="card-body" style="font-family:'Cormorant Garamond',serif;font-size:16px;line-height:1.9">${renderMd(raw)}</div></div></div>`;
+    return;
+  }
+  try {
+    const d = JSON.parse(raw.replace(/```json|```/g,'').trim());
+    curResult = {fmt, data:d, topic};
+    let canvaSection = '';
+    if (d.canva) canvaSection = `<div class="card" style="background:var(--gold-bg);border-color:#e8d8a8"><div class="card-label" style="color:var(--gold-dim)">Canva — Pronto para copiar <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="cpTxt('${esc(d.canva)}')">Copiar</button></div><div class="card-body" style="font-size:12px;color:var(--text-mid);white-space:pre-wrap">${d.canva}</div></div>`;
+
+    if (['caption','foto'].includes(fmt)) {
+      out.innerHTML = `<div class="fade-in"><div class="card"><div class="card-label">Gancho <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="cpTxt('${esc(d.hook)}')">Copiar</button></div><div class="card-title">${d.hook}</div></div><div class="card"><div class="card-label">Corpo <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="cpTxt('${esc(d.body)}')">Copiar</button></div><div class="card-body">${d.body}</div></div>${d.cta?`<div class="card"><div class="card-label">CTA</div><div class="card-body">${d.cta}</div></div>`:''} ${canvaSection}</div>`;
+    } else if (fmt==='carrossel') {
+      const sl=(d.slides||[]).map(s=>`<div class="slide-item"><div class="slide-num">${String(s.numero).padStart(2,'0')}</div><div class="slide-body"><div class="slide-lbl">${s.label}</div><div class="slide-t">${s.titulo}</div><div class="slide-d">${s.texto}</div></div></div>`).join('');
+      out.innerHTML=`<div class="fade-in"><div class="card" style="margin-bottom:10px"><div class="card-label">Título</div><div class="card-title">${d.titulo}</div></div><div class="slide-list">${sl}</div>${d.caption?`<div class="card" style="margin-top:10px"><div class="card-label">Caption <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="cpTxt('${esc(d.caption)}')">Copiar</button></div><div class="card-body">${d.caption}</div></div>`:''}${canvaSection}</div>`;
+    } else if (fmt==='stories') {
+      const st=(d.stories||[]).map(s=>`<div class="slide-item"><div class="slide-num">${s.numero}</div><div class="slide-body"><div class="slide-lbl">${s.tipo} — ${s.intencao}</div><div class="slide-t">${s.copy}</div></div></div>`).join('');
+      out.innerHTML=`<div class="fade-in"><div class="slide-list">${st}</div></div>`;
+    } else if (fmt==='citacao') {
+      const ci=(d.citacoes||[]).map((c,i)=>`<div class="card"><div class="card-label">Citação ${i+1} <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="cpTxt('${esc(c.texto)}')">Copiar</button></div><div class="card-title">"${c.texto}"</div><div class="card-body" style="color:var(--text-muted)">${c.contexto}</div></div>`).join('');
+      out.innerHTML=`<div class="fade-in">${ci}</div>`;
+    }
+  } catch(e) { out.innerHTML=`<div class="fade-in"><div class="card"><div class="card-body" style="font-size:13px;line-height:1.8">${renderMd(raw)}</div></div></div>`; }
+}
+
+function cpTxt(t) { navigator.clipboard.writeText(t).then(()=>toast('Copiado')); }
+
+function copyOutput() {
+  if (!curResult) return toast('Nada para copiar');
+  const r=curResult; let t='';
+  if (r.text) t=r.text;
+  else if (r.data) {
+    const d=r.data;
+    if (['caption','foto'].includes(r.fmt)) t=`${d.hook}\n\n${d.body}${d.cta?'\n\n'+d.cta:''}`;
+    else if (r.fmt==='carrossel') t=`${d.titulo}\n\n`+(d.slides||[]).map(s=>`[${s.numero}] ${s.titulo}\n${s.texto}`).join('\n\n');
+    else if (r.fmt==='stories') t=(d.stories||[]).map(s=>`[${s.numero}] ${s.copy}`).join('\n\n');
+    else if (r.fmt==='citacao') t=(d.citacoes||[]).map(c=>c.texto).join('\n\n');
+  }
+  navigator.clipboard.writeText(t).then(()=>toast('Copiado'));
+}
+
+function saveOutput() {
+  if (!curResult) return toast('Nada para guardar');
+  const r=curResult;
+  const prev=r.text?r.text.slice(0,100):(r.data?.hook||r.data?.titulo||r.topic||'');
+  const item={id:Date.now(),fmt:r.fmt,platform:r.fmt==='artigo'?'jornal':r.fmt==='linkedin'?'linkedin':'instagram',topic:r.topic,preview:prev.slice(0,120),data:r.data,text:r.text,date:new Date().toISOString()};
+  const arc=PA.get('archive',[]); arc.unshift(item); PA.set('archive',arc);
+  renderArc(); toast('Guardado no arquivo');
+}
+
+function scheduleOutput() {
+  if (!curResult) return toast('Gera conteúdo primeiro');
+  const preview = curResult.text?.slice(0,60) || curResult.data?.hook || curResult.data?.titulo || curResult.topic || '';
+  document.getElementById('scTitle').value = preview;
+  document.getElementById('scDate').value = new Date().toISOString().split('T')[0];
+  openModal('mScheduleCreate');
+}
+
+function confirmSchedule() {
+  const post = { id: Date.now(), title: document.getElementById('scTitle').value, date: document.getElementById('scDate').value, time: document.getElementById('scTime').value, platform: document.getElementById('scPlat').value, status: 'agendado', content: curResult?.text || '' };
+  const cal = PA.get('cal',[]); cal.push(post); PA.set('cal',cal);
+  closeModal('mScheduleCreate'); renderCal(); toast('Agendado no calendário');
+}
+
+// ── NEWS via RSS ──
+async function fetchNews() {
+  const btn = document.getElementById('newsBtn'); if(btn) btn.disabled = true;
+  document.getElementById('newsOutput').innerHTML = '<div class="loading-wrap"><div class="spin"></div><div class="loading-txt">A carregar notícias</div></div>';
+  const custom = document.getElementById('newsQuery').value.trim();
+  const themes = Array.from(document.querySelectorAll('#newsThemes .chip.on')).map(c=>c.textContent);
+  const query = custom || themes.join(' OR ') || 'holding portugal empresa';
+
+  try {
+    const items = await fetchRSS(query);
+    if (!items.length) {
+      document.getElementById('newsOutput').innerHTML = '<div class="empty-wrap"><div class="empty-txt">Sem resultados. Tenta com outros termos.</div></div>';
+    } else {
+      const html = items.map(item => `<div class="rss-item"><div class="rss-source">${item.source || 'Notícia'}</div><a href="${item.link}" target="_blank" style="text-decoration:none"><div class="rss-title">${item.title}</div></a><div class="rss-date">${item.date ? new Date(item.date).toLocaleDateString('pt-PT') : ''}</div></div>`).join('');
+      document.getElementById('newsOutput').innerHTML = `<div class="fade-in"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--gold);margin-bottom:12px">${items.length} notícias — ${new Date().toLocaleDateString('pt-PT')}</div>${html}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('newsOutput').innerHTML = '<div class="empty-wrap"><div class="empty-txt">Erro ao carregar. Verifica a ligação.</div></div>';
+  }
+  if(btn) btn.disabled = false;
+}
+
+// ── KB ──
+function handleKB(e) {
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async(ev)=>{
+    const raw=ev.target.result||'';
+    const cleaned=raw.replace(/[^\x20-\x7E\xA0-\xFF\n\r\t]/g,' ').replace(/\s+/g,' ').trim();
+    const success = cleaned.length > 50;
+    const doc={id:Date.now(),name:file.name,type:'pdf',content:cleaned.slice(0,8000),date:new Date().toISOString(),status:success?'success':'error'};
+    const kb=PA.get('kb',[]); kb.push(doc); PA.set('kb',kb);
+    renderKB();
+    if (success) {
+      toast('Documento lido com sucesso');
+      try {
+        const data=await callAPI(getSys(),[{role:'user',content:`Analisaste este documento:\n\n${cleaned.slice(0,3000)}\n\nSugere 3 ângulos de posts para @patriciop_legal. Para cada um indica formato e gancho. Responde em prosa.`}],800);
+        const reply=getReply(data);
+        if(reply&&reply!=='Sem resposta.') {
+          const chat=PA.get('chat',[]); chat.push({role:'assistant',content:`Analisei **${file.name}**:\n\n${reply}`});
+          PA.set('chat',chat); goTo('estrategico');
+          document.getElementById('chatMsgs').innerHTML=''; PA.get('chat',[]).forEach(m=>appendMsg(m.role,m.content));
+        }
+      } catch(e){}
+    } else {
+      toast('Falha a ler o documento', 'error');
+    }
+  };
+  reader.readAsText(file,'UTF-8'); e.target.value='';
+}
+
+function addKBText() { openModal('mKB'); }
+function saveKB() {
+  const name=document.getElementById('kbTitle').value.trim(), content=document.getElementById('kbContent').value.trim();
+  if(!name||!content) return toast('Preenche título e conteúdo');
+  const doc={id:Date.now(),name,type:document.getElementById('kbType').value,content,date:new Date().toISOString(),status:'success'};
+  const kb=PA.get('kb',[]); kb.push(doc); PA.set('kb',kb);
+  renderKB(); closeModal('mKB'); toast('Nota guardada');
+  document.getElementById('kbTitle').value=''; document.getElementById('kbContent').value='';
+}
+
+function renderKB() {
+  const kb=PA.get('kb',[]), list=document.getElementById('kbList'), empty=document.getElementById('kbEmpty');
+  if(!kb.length){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  const icons={pdf:'📄',nota:'📝',artigo:'📰',transcricao:'🎙',livro:'📚',outro:'📁'};
+  list.innerHTML=kb.map(d=>`<div style="background:var(--white);border:1px solid var(--border);padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:8px;border-radius:var(--radius);box-shadow:var(--shadow)"><div style="font-size:18px">${icons[d.type]||'📁'}</div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px">${d.name}</div><div style="display:flex;align-items:center;gap:8px"><span class="kb-tag ${d.status==='success'?'success':'error'}">${d.status==='success'?'Lido com sucesso':'Falha a ler'}</span><span style="font-size:11px;color:var(--text-muted)">${d.type} · ${new Date(d.date).toLocaleDateString('pt-PT')}</span></div></div><button class="btn-ghost" style="font-size:11px;color:var(--red)" onclick="delKB(${d.id})">Remover</button>${d.status==='error'?`<button class="btn-ghost" style="font-size:11px" onclick="retryKB(${d.id})">Tentar novamente</button>`:''}</div>`).join('');
+}
+function delKB(id){const kb=PA.get('kb',[]).filter(d=>d.id!==id);PA.set('kb',kb);renderKB();}
+function retryKB(id){toast('Funcionalidade: remove e volta a adicionar o PDF');}
+
+// ── CALENDAR ──
+function renderCal() {
+  const d=calDate, y=d.getFullYear(), m=d.getMonth();
+  const months=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('calTitle').textContent=`${months[m]} ${y}`;
+  const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), today=new Date(), prev=new Date(y,m,0).getDate();
+  const cal=PA.get('cal',[]);
+  let html='';
+  for(let i=first-1;i>=0;i--) html+=`<div style="background:var(--white);min-height:88px;padding:8px;opacity:0.3"><div style="font-size:11px;color:var(--text-muted)">${prev-i}</div></div>`;
+  for(let day=1;day<=dim;day++){
+    const isT=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===day;
+    const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const posts=cal.filter(p=>p.date===ds&&(calFilter==='all'||p.platform===calFilter));
+    const statusBg={agendado:'background:#eef3fc;color:var(--blue)','por-fazer':'background:var(--bg);color:var(--text-muted)',publicado:'background:var(--green-bg);color:var(--green)'};
+    const dots=posts.map(p=>`<div style="font-size:10px;padding:2px 6px;margin-bottom:2px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;${statusBg[p.status]||''}" onclick="event.stopPropagation();delCalPost(${p.id})" title="Clica para apagar">${p.title}</div>`).join('');
+    html+=`<div style="background:${isT?'#fffbf0':'var(--white)'};min-height:88px;padding:8px;cursor:pointer;transition:background 0.12s" onmouseover="this.style.background='var(--bg)'" onmouseout="this.style.background='${isT?'#fffbf0':'var(--white)'}'" onclick="openCalDate('${ds}')"><div style="font-size:11px;font-weight:${isT?'600':'400'};color:${isT?'var(--gold-dim)':'var(--text-muted)'};margin-bottom:4px">${day}</div>${dots}</div>`;
+  }
+  const rem=42-first-dim; for(let i=1;i<=rem;i++) html+=`<div style="background:var(--white);min-height:88px;padding:8px;opacity:0.3"><div style="font-size:11px;color:var(--text-muted)">${i}</div></div>`;
+  document.getElementById('calGrid').innerHTML=html;
+}
+function calMove(d){calDate.setMonth(calDate.getMonth()+d);renderCal();}
+function calNow(){calDate=new Date();renderCal();}
+function setCalFilter(el,val){document.querySelectorAll('#calFilter .chip').forEach(c=>c.classList.remove('on'));el.classList.add('on');calFilter=val;renderCal();}
+function openCalDate(ds){openModal('mCal');document.getElementById('cDate').value=ds;}
+function delCalPost(id){const cal=PA.get('cal',[]).filter(p=>p.id!==id);PA.set('cal',cal);renderCal();renderStats();}
+function saveCalPost(){
+  const post={id:Date.now(),title:document.getElementById('cTitle').value.trim()||'Post sem título',date:document.getElementById('cDate').value,time:document.getElementById('cTime').value,platform:document.getElementById('cPlat').value,status:document.getElementById('cStatus').value,content:document.getElementById('cContent').value};
+  const cal=PA.get('cal',[]); cal.push(post); PA.set('cal',cal);
+  closeModal('mCal'); renderCal(); renderStats(); toast('Agendado');
+  document.getElementById('cTitle').value=''; document.getElementById('cContent').value='';
+}
+
+async function getAICalSuggestions() {
+  const cal=PA.get('cal',[]);
+  const themes=PA.get('themes',[]);
+  const prompt=`Com base nos meus temas (${themes.join(', ')}) e nos posts já agendados (${cal.slice(0,5).map(p=>p.title).join(', ')||'nenhum'}), sugere 5 posts para as próximas 2 semanas com data, plataforma e tema. Sê concreto e direto.`;
+  toast('A gerar sugestões...');
+  try {
+    const data=await callAPI(getSys(),[{role:'user',content:prompt}],600);
+    alert(getReply(data));
+  } catch(e){toast('Erro','error');}
+}
+
+// ── IDEAS ──
+async function genIdeas(){
+  const btn=document.getElementById('ideasBtn'); btn.disabled=true;
+  document.getElementById('ideasOut').innerHTML='<div class="loading-wrap"><div class="spin"></div><div class="loading-txt">A gerar ideias</div></div>';
+  const selected=Array.from(document.querySelectorAll('#idThemes .chip.on')).map(c=>c.textContent);
+  const custom=document.getElementById('idCustomTheme').value.trim();
+  const themes=[...selected, ...(custom?[custom]:[])].join(', ')||PA.get('themes',[]).join(', ');
+  const fmts=Array.from(document.querySelectorAll('#s-ideias .pane-l .chips .chip.on')).map(c=>c.textContent).filter(t=>!PA.get('themes',[]).includes(t)).join(', ');
+  const cnt=document.getElementById('idCount').value, ctx=document.getElementById('idCtx').value;
+  try{
+    const data=await callAPI(getSys(),[{role:'user',content:`Gera ${cnt} ideias de conteúdo. Temas: ${themes}. Formatos: ${fmts}. ${ctx?'Contexto: '+ctx:''}\n\nResponde APENAS com JSON:\n{"ideias":[{"titulo":"título editorial","angulo":"perspetiva única (1 frase)","formato":"formato","gancho":"primeira linha sugerida"}]}`}],2000);
+    const d=JSON.parse(getReply(data).replace(/```json|```/g,'').trim());
+    (d.ideias||[]).forEach(i => saveUnifiedIdea(i.titulo+': '+i.angulo, i.formato, 'conteudo'));
+    const html=(d.ideias||[]).map((idea,i)=>`<div class="idea-card" onclick="useIdea('${esc(idea.titulo)}','${esc(idea.gancho)}')"><div class="idea-n">${String(i+1).padStart(2,'0')}</div><div class="idea-t">${idea.titulo}</div><div class="idea-a">${idea.angulo}</div><div class="idea-f">${idea.formato}</div></div>`).join('');
+    document.getElementById('ideasOut').innerHTML=`<div class="fade-in"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--gold);margin-bottom:12px">${d.ideias?.length||0} ideias</div><div class="ideas-grid">${html}</div></div>`;
+  }catch(e){document.getElementById('ideasOut').innerHTML='<div class="empty-wrap"><div class="empty-txt">Erro.</div></div>';}
+  btn.disabled=false;
+}
+function useIdea(t,g){goTo('criar');document.getElementById('fmtSel').value='caption';buildForm();setTimeout(()=>{document.getElementById('ft').value=t;document.getElementById('fh').value=g;},50);toast('Ideia carregada');}
+
+// ── ARCHIVE ──
+function renderArc(){
+  const search=(document.getElementById('arcSearch')?.value||'').toLowerCase(), fmt=document.getElementById('arcFmt')?.value||'', sort=document.getElementById('arcSort')?.value||'date';
+  let items=[...PA.get('archive',[])];
+  if(search) items=items.filter(i=>(i.preview||'').toLowerCase().includes(search)||(i.topic||'').toLowerCase().includes(search));
+  if(fmt) items=items.filter(i=>i.fmt===fmt);
+  if(sort==='format') items.sort((a,b)=>a.fmt.localeCompare(b.fmt)); else items.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  const list=document.getElementById('arcList'), empty=document.getElementById('arcEmpty');
+  if(!items.length){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  list.innerHTML=items.map(item=>`<div style="background:var(--white);border:1px solid var(--border);padding:14px 18px;margin-bottom:10px;cursor:pointer;border-radius:var(--radius);box-shadow:var(--shadow);transition:all 0.12s" onmouseover="this.style.boxShadow='var(--shadow-md)'" onmouseout="this.style.boxShadow='var(--shadow)'" onclick="loadArc(${item.id})"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:11px;font-weight:500;padding:2px 10px;border-radius:20px;background:var(--gold-bg);color:var(--gold-dim)">${item.fmt}</span><span style="font-size:11px;color:var(--text-light)">${new Date(item.date).toLocaleDateString('pt-PT')}</span></div><div style="font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;color:var(--text-mid);line-height:1.4">${item.preview}</div></div>`).join('');
+}
+function loadArc(id){
+  const item=PA.get('archive',[]).find(i=>i.id===id); if(!item) return;
+  goTo('criar'); document.getElementById('fmtSel').value=item.fmt||'caption'; buildForm();
+  curResult={fmt:item.fmt,data:item.data,text:item.text,topic:item.topic};
+  if(item.data) renderCreate(item.fmt,JSON.stringify(item.data),item.topic);
+  else if(item.text) renderCreate(item.fmt,item.text,item.topic);
+}
+
+// ── STATS ──
+function renderStats(){
+  const today=new Date().toISOString().split('T')[0], month=today.slice(0,7);
+  const costs=PA.get('costs',{total:0,month:{},day:{}}), cal=PA.get('cal',[]), arc=PA.get('archive',[]);
+  const postsM=cal.filter(p=>p.date?.startsWith(month)).length;
+  const last30=cal.filter(p=>{const diff=(new Date()-new Date(p.date))/86400000;return diff>=0&&diff<=30&&p.status==='publicado';}).length;
+  document.getElementById('statsGrid').innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">Posts este mês</div><div class="stat-val">${postsM}</div><div class="stat-sub">no calendário</div></div>
+    <div class="stat-card"><div class="stat-lbl">Conteúdos gerados</div><div class="stat-val">${arc.length}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Custo este mês</div><div class="stat-val gold" style="font-size:26px">€${(costs.month[month]||0).toFixed(3)}</div><div class="stat-sub">€${(costs.total||0).toFixed(3)} total</div></div>
+    <div class="stat-card"><div class="stat-lbl">Consistência</div><div class="stat-val">${last30}</div><div class="stat-sub">publicados (30 dias)</div></div>`;
+
+  // Charts
+  const byPlat={instagram:0,linkedin:0,jornal:0};
+  const byFmt={};
+  arc.forEach(i=>{byPlat[i.platform]=(byPlat[i.platform]||0)+1;byFmt[i.fmt]=(byFmt[i.fmt]||0)+1;});
+  const platMax=Math.max(...Object.values(byPlat),1);
+  const platBars=Object.entries(byPlat).map(([p,v])=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text-mid)">${p}</span><span style="color:var(--navy);font-weight:500">${v}</span></div><div style="height:6px;background:var(--border);border-radius:3px"><div style="height:100%;background:var(--navy);border-radius:3px;width:${Math.round(v/platMax*100)}%"></div></div></div>`).join('');
+  const fmtMax=Math.max(...Object.values(byFmt),1);
+  const fmtBars=Object.entries(byFmt).map(([f,v])=>`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:var(--text-mid)">${f}</span><span style="color:var(--gold-dim);font-weight:500">${v}</span></div><div style="height:6px;background:var(--border);border-radius:3px"><div style="height:100%;background:var(--gold);border-radius:3px;width:${Math.round(v/fmtMax*100)}%"></div></div></div>`).join('');
+  document.getElementById('statsCharts').innerHTML=`<div class="card"><div class="card-label">Por Plataforma</div>${platBars||'<span style="font-size:12px;color:var(--text-light)">Sem dados</span>'}</div><div class="card"><div class="card-label">Por Formato</div>${fmtBars||'<span style="font-size:12px;color:var(--text-light)">Sem dados</span>'}</div>`;
+
+  const metrics=PA.get('metrics',[]);
+  document.getElementById('perfBody').innerHTML=!metrics.length?`<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:24px">Sem métricas.</td></tr>`:metrics.map(m=>`<tr><td style="font-weight:500;color:var(--text)">${m.post}</td><td>${m.platform}</td><td>${m.date}</td><td><div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px"><div style="height:100%;background:var(--gold);border-radius:2px;width:${m.aiScore||50}%"></div></div><span style="font-size:10px;color:var(--text-muted)">${m.aiScore||50}%</span></td><td><span class="badge ${m.rating==='excelente'||m.rating==='bom'?'green':'gray'}">${m.rating}</span></td><td>${m.reach||0}</td></tr>`).join('');
+}
+
+async function saveMetric(){
+  const post=document.getElementById('mPost').value.trim(); if(!post) return toast('Indica o post');
+  const m={id:Date.now(),post,platform:document.getElementById('mPlat').value,reach:document.getElementById('mReach').value,likes:document.getElementById('mLikes').value,comments:document.getElementById('mComm').value,rating:document.getElementById('mRating').value,date:new Date().toLocaleDateString('pt-PT'),aiScore:50};
+  try{const data=await callAPI(getSys(),[{role:'user',content:`O post "${post}" teve alcance ${m.reach}, ${m.likes} likes, ${m.comments} comentários. Avalia 0-100. Responde APENAS com um número inteiro.`}],100);m.aiScore=Math.min(100,Math.max(0,parseInt(getReply(data))||50));}catch(e){}
+  const metrics=PA.get('metrics',[]); metrics.unshift(m); PA.set('metrics',metrics);
+  closeModal('mMetric'); renderStats(); toast('Métricas guardadas');
+}
+
+// ── THEMES ──
+function renderThemeChips(){
+  const themes=PA.get('themes',['Holdings','Pactos de Sócios','SPVs','Fix & Flip','Proteção de Ativos','Imobiliário']);
+  ['newsThemes','idThemes'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=themes.map(t=>`<button class="chip" onclick="toggleChip(this)">${t}</button>`).join('');});
+}
+</script>
+</body>
+</html>
