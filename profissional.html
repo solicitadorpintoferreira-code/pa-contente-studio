@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patrício IA — Profissional</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="lockScreen">
+  <div class="lock-initial">P</div>
+  <div class="lock-subtitle">Patrício IA</div>
+  <div class="lock-quote" id="lqText"></div>
+  <div class="lock-form">
+    <input type="password" class="lock-input" id="lkInput" placeholder="••••••••">
+    <button class="lock-btn" onclick="doUnlock()">Entrar</button>
+    <div class="lock-err" id="lkErr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <a href="profissional.html" class="topbar-logo">P</a>
+    <nav id="mainNav"></nav>
+    <div class="topbar-space"></div>
+    <div class="cost-row">
+      <div class="cost-pill"><span class="cost-lbl">Sessão</span><span class="cost-val" id="cSess">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Mês</span><span class="cost-val" id="cMonth">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Total</span><span class="cost-val" id="cTotal">€0.000</span></div>
+      <span id="cDay" style="display:none"></span>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div class="sidebar" id="sb">
+      <div class="sb-head"><button class="sb-toggle" onclick="toggleSB()">☰</button></div>
+      <div class="sb-section">Profissional</div>
+      <button class="nav-i active" onclick="goTo('conteudo')"><span>Conteúdo</span></button>
+      <button class="nav-i" onclick="goTo('faturacao')"><span>Faturação P&A</span></button>
+    </div>
+
+    <div class="main">
+
+      <!-- ══ CONTEÚDO ══ -->
+      <div class="section on" id="s-conteudo">
+        <div style="display:flex;flex:1;overflow:hidden;flex-direction:column">
+
+          <!-- Sub-tabs -->
+          <div style="background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 22px;gap:0;flex-shrink:0">
+            <button class="sub-tab active" onclick="setTab('calendário')">Calendário</button>
+            <button class="sub-tab" onclick="setTab('kanban')">Por Status</button>
+            <button class="sub-tab" onclick="setTab('legendas')">Legendas de Fotos</button>
+            <button class="sub-tab" onclick="setTab('guioes')">Copy & Guiões</button>
+            <div style="flex:1"></div>
+            <button class="btn-primary" style="margin:8px 0" onclick="newPost()">+ Novo conteúdo</button>
+          </div>
+
+          <!-- CALENDÁRIO -->
+          <div class="tab-pane on" id="t-calendário" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0">
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Dom</div>
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Seg</div>
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Ter</div>
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Qua</div>
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Qui</div>
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Sex</div>
+              <div style="padding:7px;text-align:center;font-size:10px;font-weight:600;text-transform:uppercase;color:var(--text-muted)">Sáb</div>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--navy);font-weight:600" id="calMonthTitle">—</div>
+              <div style="display:flex;gap:6px">
+                <button class="btn-secondary" onclick="calMove(-1)">‹</button>
+                <button class="btn-secondary" onclick="calNow()">Hoje</button>
+                <button class="btn-secondary" onclick="calMove(1)">›</button>
+              </div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+
+          <!-- KANBAN -->
+          <div class="tab-pane" id="t-kanban" style="display:none;flex:1;overflow:hidden">
+            <div class="kanban-wrap" id="kanbanWrap"></div>
+          </div>
+
+          <!-- LEGENDAS -->
+          <div class="tab-pane" id="t-legendas" style="display:none;flex:1;overflow:hidden">
+            <div class="two-pane" style="flex:1">
+              <div class="pane-l" style="width:320px">
+                <div class="prompt-box">
+                  <div class="prompt-box-label">Prompt Master — Legendas</div>
+                  <textarea id="legendaPrompt" placeholder="Ex: Escreve uma legenda no meu estilo editorial, sem emojis, para a seguinte foto..." oninput="PA.set('prompt_legendas',this.value)"></textarea>
+                </div>
+                <div class="f-group">
+                  <div class="f-lbl">Descrição da foto</div>
+                  <textarea class="f-textarea" id="legendaFoto" style="min-height:100px" placeholder="Descreve o que está na foto, o contexto, onde foi tirada..."></textarea>
+                </div>
+                <div class="f-group">
+                  <div class="f-lbl">Tom adicional (opcional)</div>
+                  <div class="chips">
+                    <button class="chip on" onclick="toggleChip(this)">Editorial</button>
+                    <button class="chip on" onclick="toggleChip(this)">Provocatório</button>
+                    <button class="chip" onclick="toggleChip(this)">Técnico</button>
+                    <button class="chip" onclick="toggleChip(this)">Narrativo</button>
+                    <button class="chip" onclick="toggleChip(this)">Direto</button>
+                  </div>
+                </div>
+                <div class="f-group">
+                  <div class="f-lbl">CTA</div>
+                  <select class="f-select" id="legendaCTA">
+                    <option value="nenhum">Sem CTA</option>
+                    <option value="guarda">Guarda este post</option>
+                    <option value="comenta">Comenta</option>
+                    <option value="segue">Segue para mais</option>
+                    <option value="link">Link na bio</option>
+                  </select>
+                </div>
+                <button class="btn-primary full" onclick="gerarLegenda()" id="legendaBtn">Gerar legenda</button>
+              </div>
+              <div class="pane-r" id="legendaOutput">
+                <div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">A legenda aparece aqui</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GUIÕES -->
+          <div class="tab-pane" id="t-guioes" style="display:none;flex:1;overflow:hidden">
+            <div class="two-pane" style="flex:1">
+              <div class="pane-l" style="width:320px">
+                <div class="prompt-box">
+                  <div class="prompt-box-label">Prompt Master — Guiões & Copy</div>
+                  <textarea id="guiaoPrompt" placeholder="Ex: Escreve guiões de vídeo no meu estilo, autoritário, sem introduções longas. Vai direto ao ponto..." oninput="PA.set('prompt_guiaos',this.value)"></textarea>
+                </div>
+                <div class="f-group">
+                  <div class="f-lbl">Formato</div>
+                  <select class="f-select" id="guiaoFormato">
+                    <option value="reel">Reel (30–60 seg)</option>
+                    <option value="reel-longo">Reel longo (60–90 seg)</option>
+                    <option value="carrossel">Carrossel (guião slide a slide)</option>
+                    <option value="youtube">YouTube (5–10 min)</option>
+                    <option value="podcast">Podcast / Áudio</option>
+                    <option value="copy">Copy de post (texto puro)</option>
+                  </select>
+                </div>
+                <div class="f-group">
+                  <div class="f-lbl">Tema / Ideia central</div>
+                  <textarea class="f-textarea" id="guiaoTema" style="min-height:100px" placeholder="Ex: Por que 90% das sociedades por quotas têm o pacto de sócios errado..."></textarea>
+                </div>
+                <div class="f-group">
+                  <div class="f-lbl">Tom</div>
+                  <div class="chips">
+                    <button class="chip on" onclick="toggleChip(this)">Provocatório</button>
+                    <button class="chip on" onclick="toggleChip(this)">Autoritário</button>
+                    <button class="chip" onclick="toggleChip(this)">Educativo</button>
+                    <button class="chip" onclick="toggleChip(this)">Narrativo</button>
+                  </div>
+                </div>
+                <button class="btn-primary full" onclick="gerarGuiao()" id="guiaoBtn">Gerar guião</button>
+              </div>
+              <div class="pane-r" id="guiaoOutput">
+                <div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">O guião aparece aqui</div></div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ══ FATURAÇÃO ══ -->
+      <div class="section" id="s-faturacao">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">P&A Legal</div><div class="page-title">Faturação</div></div>
+          <div class="page-actions">
+            <button class="btn-secondary" onclick="openModal('mFatTarget')">Objetivo anual</button>
+            <button class="btn-secondary" onclick="getAIFaturacao()">Análise IA</button>
+            <button class="btn-primary" onclick="openModal('mFat')">+ Registar mês</button>
+          </div>
+        </div>
+        <div style="display:flex;flex:1;overflow:hidden">
+          <!-- Dashboard sidebar -->
+          <div style="width:220px;min-width:220px;background:var(--white);border-right:1px solid var(--border);overflow-y:auto;padding:16px 14px;flex-shrink:0">
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:10px">Dashboard</div>
+            <div id="dashYear" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--navy);font-weight:600;line-height:1;margin-bottom:12px"></div>
+            <div id="dashCards"></div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin:14px 0 8px">Por Mês</div>
+            <div id="dashMonths"></div>
+            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin:14px 0 8px">Objetivos</div>
+            <div id="dashTargets"></div>
+          </div>
+          <div class="scroll-body" style="flex:1">
+            <div class="stats-grid" id="fatStats"></div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gold)">Por Mês</div>
+              <select class="f-select" style="width:110px" id="fatYear" onchange="renderFat()">
+                <option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+              </select>
+            </div>
+            <div id="fatList"></div>
+            <div id="fatEmpty" style="text-align:center;padding:50px 0;color:var(--text-light);font-size:13px">Sem registos.</div>
+            <div class="divider" id="fatEvoDivider" style="display:none"></div>
+            <div id="fatEvolution" style="display:none">
+              <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin-bottom:12px">Evolução</div>
+              <div id="fatEvoTable"></div>
+              <div id="fatEvoChart" style="margin-top:14px"></div>
+            </div>
+            <div id="fatAI" style="margin-top:18px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Content Panel (Notion-style) -->
+<div class="content-panel" id="contentPanel">
+  <div class="cp-head">
+    <button class="cp-close" onclick="closePanel()">✕</button>
+    <input class="cp-title" id="cpTitle" placeholder="Título do conteúdo..." onchange="savePanel()">
+  </div>
+  <div class="cp-body">
+    <div class="cp-field-row">
+      <div class="cp-field-label">Status</div>
+      <div>
+        <select class="f-select" id="cpStatus" onchange="savePanel();renderAll()" style="width:100%">
+          <option value="conceito">Conceito</option>
+          <option value="ideia">Ideia</option>
+          <option value="copy">Copy pronto</option>
+          <option value="gravado">Gravado</option>
+          <option value="editado">Editado</option>
+          <option value="publicado">Publicado</option>
+        </select>
+      </div>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-field-label">Tipo</div>
+      <div>
+        <select class="f-select" id="cpTipo" onchange="savePanel()" style="width:100%">
+          <option value="Reels">Reels</option>
+          <option value="Estático">Estático</option>
+          <option value="Autoridade">Autoridade</option>
+          <option value="Q&A">Q&A</option>
+          <option value="Artigo P&A">Artigo P&A</option>
+          <option value="Podcast">Podcast</option>
+          <option value="YouTube">YouTube</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Carrossel">Carrossel</option>
+          <option value="Stories">Stories</option>
+        </select>
+      </div>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-field-label">Plataforma</div>
+      <div>
+        <select class="f-select" id="cpPlat" onchange="savePanel()" style="width:100%">
+          <option value="Instagram">Instagram</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="YouTube">YouTube</option>
+          <option value="Podcast">Podcast</option>
+          <option value="Jornal">Jornal / Site</option>
+        </select>
+      </div>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-field-label">Data de publicação</div>
+      <div><input type="date" class="f-input" id="cpDataPub" onchange="savePanel();renderAll()"></div>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-field-label">Prazo (copy pronto)</div>
+      <div><input type="date" class="f-input" id="cpPrazo" onchange="savePanel()"></div>
+    </div>
+    <div class="divider" style="margin:4px 0"></div>
+    <div class="f-group">
+      <div class="f-lbl">Ideia / Copy</div>
+      <textarea class="cp-textarea" id="cpCopy" placeholder="Cola aqui o copy, a ideia, o guião..." oninput="savePanel()"></textarea>
+    </div>
+    <div class="f-group">
+      <div class="f-lbl">Notas internas</div>
+      <textarea class="cp-textarea" id="cpNotas" style="min-height:60px" placeholder="Referências, ligações, contexto..." oninput="savePanel()"></textarea>
+    </div>
+    <div id="cpWarn" style="display:none;background:var(--orange-bg);border:1px solid #f0c090;border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:var(--orange)">
+      ⚠ O conteúdo ainda não está pronto e a publicação é em menos de 3 dias.
+    </div>
+  </div>
+  <div class="cp-foot">
+    <button class="btn-danger" onclick="deletePost()">Apagar</button>
+    <div style="flex:1"></div>
+    <button class="btn-secondary" onclick="closePanel()">Fechar</button>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="mFatTarget"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Objetivo Anual</div><button class="modal-x" onclick="closeModal('mFatTarget')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Ano</div><select class="f-select" id="fatTargetYear"><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+    <div class="f-group"><div class="f-lbl">Objetivo (€)</div><input type="number" class="f-input" id="fatTargetAmt" placeholder="300000"></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mFatTarget')">Cancelar</button><button class="btn-primary" onclick="saveFatTarget()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mFat"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Registar Mês</div><button class="modal-x" onclick="closeModal('mFat')">✕</button></div>
+  <div class="modal-body">
+    <div class="grid-2">
+      <div class="f-group"><div class="f-lbl">Mês</div><select class="f-select" id="fatMonth"><option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option><option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option><option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option></select></div>
+      <div class="f-group"><div class="f-lbl">Ano</div><select class="f-select" id="fatYearInput"><option value="2022">2022</option><option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option></select></div>
+    </div>
+    <div class="f-group"><div class="f-lbl">Faturação (€)</div><input type="number" class="f-input" id="fatAmount" placeholder="25000"></div>
+    <div class="f-group"><div class="f-lbl">Nota</div><textarea class="f-textarea" id="fatNote" placeholder="Projetos principais..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mFat')">Cancelar</button><button class="btn-primary" onclick="saveFat()">Guardar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<style>
+.sub-tab { background:none; border:none; border-bottom:2px solid transparent; padding:12px 16px; font-family:'Inter',sans-serif; font-size:13px; color:var(--text-muted); cursor:pointer; transition:all .12s; white-space:nowrap; }
+.sub-tab:hover { color:var(--text); }
+.sub-tab.active { color:var(--navy); border-bottom-color:var(--navy); font-weight:500; }
+.month-card { background:var(--white); border:1px solid var(--border); padding:13px 16px; border-radius:var(--radius); margin-bottom:7px; display:flex; align-items:center; gap:14px; box-shadow:var(--shadow); }
+.month-name { font-size:13px; font-weight:500; color:var(--text); min-width:90px; }
+.month-bar-wrap { flex:1; }
+.month-amount { font-size:13px; font-weight:600; color:var(--navy); min-width:75px; text-align:right; }
+</style>
+<script src="shared.js"></script>
+<script>
+// ── INIT ──
+let calDate = new Date(), activePostId = null;
+const STATUS_COLORS = { conceito:'#f0f0ee', ideia:'#ffeaea', copy:'#fff3e0', gravado:'#e3f0ff', editado:'#e8f5e9', publicado:'#f3e5f5' };
+const STATUS_TEXT = { conceito:'#666', ideia:'#c0392b', copy:'#c05a10', gravado:'#1a5ab8', editado:'#2a7a4a', publicado:'#6b3fa0' };
+const STATUS_LABELS = { conceito:'Conceito', ideia:'Ideia', copy:'Copy pronto', gravado:'Gravado', editado:'Editado', publicado:'Publicado' };
+const STATUS_ORDER = ['conceito','ideia','copy','gravado','editado','publicado'];
+
+function toggleChip(el) { el.classList.toggle('on'); }
+
+initLock(() => {
+  buildNav('profissional.html');
+  updateCostDisplay();
+  // Load saved prompts
+  const lp = PA.get('prompt_legendas',''); if(lp) document.getElementById('legendaPrompt').value = lp;
+  const gp = PA.get('prompt_guiaos',''); if(gp) document.getElementById('guiaoPrompt').value = gp;
+  renderAll();
+  renderFat();
+});
+
+function goTo(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('on'));
+  document.querySelectorAll('.nav-i').forEach(b => b.classList.remove('active'));
+  document.getElementById('s-' + id).classList.add('on');
+  document.querySelector(`[onclick="goTo('${id}')"]`).classList.add('active');
+}
+let sbOpen = true;
+function toggleSB() { sbOpen = !sbOpen; document.getElementById('sb').classList.toggle('closed', !sbOpen); }
+
+// ── TABS ──
+function setTab(tab) {
+  document.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.style.display = 'none');
+  document.querySelector(`[onclick="setTab('${tab}')"]`).classList.add('active');
+  document.getElementById('t-' + tab).style.display = 'flex';
+}
+
+// ── CONTENT DATA ──
+function getPosts() { return PA.get('posts', []); }
+function savePosts(posts) { PA.set('posts', posts); }
+
+// ── CALENDAR ──
+function renderCal() {
+  const d = calDate, y = d.getFullYear(), m = d.getMonth();
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  document.getElementById('calMonthTitle').textContent = `${months[m]} ${y}`;
+  const first = new Date(y,m,1).getDay(), dim = new Date(y,m+1,0).getDate(), today = new Date();
+  const prev = new Date(y,m,0).getDate();
+  const posts = getPosts();
+  let html = '';
+  // Prev month filler
+  for (let i = first-1; i >= 0; i--) html += `<div class="cal-day other-month"><div class="cal-day-num">${prev-i}</div></div>`;
+  for (let day = 1; day <= dim; day++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isT = today.getFullYear()===y && today.getMonth()===m && today.getDate()===day;
+    const dayPosts = posts.filter(p => p.dataPub === ds);
+    const events = dayPosts.map(p => {
+      const bg = STATUS_COLORS[p.status]||'#eee', tc = STATUS_TEXT[p.status]||'#333';
+      return `<div class="cal-event" style="background:${bg};color:${tc}" onclick="openPost(${p.id})">${p.title||'Sem título'}</div>`;
+    }).join('');
+    html += `<div class="cal-day${isT?' today':''}" onclick="calDayClick('${ds}')"><div class="cal-day-num">${day}</div>${events}</div>`;
+  }
+  const rem = 42 - first - dim;
+  for (let i = 1; i <= rem; i++) html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  document.getElementById('calGrid').innerHTML = html;
+}
+function calMove(d) { calDate.setMonth(calDate.getMonth()+d); renderCal(); }
+function calNow() { calDate = new Date(); renderCal(); }
+function calDayClick(ds) { newPost(ds); }
+
+// ── KANBAN ──
+function renderKanban() {
+  const posts = getPosts();
+  const wrap = document.getElementById('kanbanWrap');
+  wrap.innerHTML = STATUS_ORDER.map(status => {
+    const col_posts = posts.filter(p => p.status === status);
+    const cards = col_posts.map(p => {
+      const daysLeft = p.dataPub ? Math.ceil((new Date(p.dataPub) - new Date()) / 86400000) : null;
+      const warn = daysLeft !== null && daysLeft <= 3 && daysLeft >= 0 && p.status !== 'publicado';
+      return `<div class="kanban-card" onclick="openPost(${p.id})">
+        <div class="kanban-card-title">${p.title||'Sem título'}${warn?` <span class="warn-badge">⚠ ${daysLeft}d</span>`:''}</div>
+        <div class="kanban-card-meta">
+          ${p.tipo?`<span class="badge gray">${p.tipo}</span>`:''}
+          ${p.dataPub?`<span style="font-size:10px;color:var(--text-muted)">${new Date(p.dataPub).toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}</span>`:''}
+        </div>
+      </div>`;
+    }).join('');
+    return `<div class="kanban-col">
+      <div class="kanban-col-head">
+        <div class="kanban-col-title"><span class="status-dot" style="background:${STATUS_TEXT[status]||'#999'}"></span>${STATUS_LABELS[status]}<span class="kanban-col-count">${col_posts.length}</span></div>
+        <button class="btn-ghost" style="padding:2px 6px;font-size:18px" onclick="newPostStatus('${status}')">+</button>
+      </div>
+      <div class="kanban-col-body">${cards||'<div style="font-size:12px;color:var(--text-light);padding:8px">Vazio</div>'}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll() { renderCal(); renderKanban(); }
+
+// ── POST PANEL ──
+function newPost(ds) {
+  const p = { id: Date.now(), title:'', status:'ideia', tipo:'Reels', plat:'Instagram', dataPub:ds||'', prazo:'', copy:'', notas:'', created:new Date().toISOString() };
+  const posts = getPosts(); posts.unshift(p); savePosts(posts);
+  openPost(p.id); renderAll();
+}
+function newPostStatus(status) {
+  const p = { id: Date.now(), title:'', status, tipo:'Reels', plat:'Instagram', dataPub:'', prazo:'', copy:'', notas:'', created:new Date().toISOString() };
+  const posts = getPosts(); posts.unshift(p); savePosts(posts);
+  openPost(p.id); renderAll();
+}
+
+function openPost(id) {
+  const p = getPosts().find(x => x.id === id); if (!p) return;
+  activePostId = id;
+  document.getElementById('cpTitle').value = p.title||'';
+  document.getElementById('cpStatus').value = p.status||'ideia';
+  document.getElementById('cpTipo').value = p.tipo||'Reels';
+  document.getElementById('cpPlat').value = p.plat||'Instagram';
+  document.getElementById('cpDataPub').value = p.dataPub||'';
+  document.getElementById('cpPrazo').value = p.prazo||'';
+  document.getElementById('cpCopy').value = p.copy||'';
+  document.getElementById('cpNotas').value = p.notas||'';
+  // Warning check
+  const daysLeft = p.dataPub ? Math.ceil((new Date(p.dataPub) - new Date()) / 86400000) : null;
+  const warn = daysLeft !== null && daysLeft <= 3 && daysLeft >= 0 && !['publicado','editado','gravado'].includes(p.status);
+  document.getElementById('cpWarn').style.display = warn ? 'block' : 'none';
+  document.getElementById('contentPanel').classList.add('open');
+}
+
+function savePanel() {
+  if (!activePostId) return;
+  const posts = getPosts();
+  const idx = posts.findIndex(p => p.id === activePostId); if (idx < 0) return;
+  posts[idx].title = document.getElementById('cpTitle').value;
+  posts[idx].status = document.getElementById('cpStatus').value;
+  posts[idx].tipo = document.getElementById('cpTipo').value;
+  posts[idx].plat = document.getElementById('cpPlat').value;
+  posts[idx].dataPub = document.getElementById('cpDataPub').value;
+  posts[idx].prazo = document.getElementById('cpPrazo').value;
+  posts[idx].copy = document.getElementById('cpCopy').value;
+  posts[idx].notas = document.getElementById('cpNotas').value;
+  savePosts(posts);
+  renderAll();
+}
+
+function deletePost() {
+  if (!activePostId || !confirm('Apagar este conteúdo?')) return;
+  savePosts(getPosts().filter(p => p.id !== activePostId));
+  closePanel(); renderAll();
+}
+
+function closePanel() {
+  document.getElementById('contentPanel').classList.remove('open');
+  activePostId = null;
+}
+
+// ── AI: LEGENDAS ──
+async function gerarLegenda() {
+  const foto = document.getElementById('legendaFoto').value.trim();
+  if (!foto) { toast('Descreve a foto primeiro'); return; }
+  const btn = document.getElementById('legendaBtn'); btn.disabled = true;
+  document.getElementById('legendaOutput').innerHTML = '<div class="loading-wrap"><div class="spin"></div><div class="loading-txt">A gerar legenda</div></div>';
+  const masterPrompt = document.getElementById('legendaPrompt').value.trim();
+  const tones = Array.from(document.querySelectorAll('#t-legendas .chip.on')).map(c=>c.textContent).join(', ');
+  const cta = document.getElementById('legendaCTA').value;
+  const sys = getSys() + (masterPrompt ? '\n\nINSTRUÇÕES ESPECÍFICAS PARA LEGENDAS:\n' + masterPrompt : '');
+  const prompt = `Escreve uma legenda para Instagram para a seguinte foto:\n\nFOTO: ${foto}\nTOM: ${tones}\nCTA: ${cta==='nenhum'?'Sem CTA':cta}\n\nResponde APENAS com JSON:\n{"hook":"gancho (máx 15 palavras, sem ponto final)","body":"corpo da legenda (máx 120 palavras, prosa editorial, sem bullets, sem emojis)","cta":"${cta==='nenhum'?'':cta}"}`;
+  try {
+    const data = await callAPI(sys, [{role:'user',content:prompt}], 800);
+    const raw = getReply(data);
+    try {
+      const d = JSON.parse(raw.replace(/```json|```/g,'').trim());
+      document.getElementById('legendaOutput').innerHTML = `<div class="fade-in">
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-label">Gancho <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="navigator.clipboard.writeText('${esc(d.hook)}').then(()=>toast('Copiado'))">Copiar</button></div>
+          <div class="card-title">${d.hook}</div>
+        </div>
+        <div class="card" style="margin-bottom:10px">
+          <div class="card-label">Corpo <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="navigator.clipboard.writeText('${esc(d.body)}').then(()=>toast('Copiado'))">Copiar</button></div>
+          <div class="card-body">${d.body}</div>
+        </div>
+        ${d.cta?`<div class="card"><div class="card-label">CTA</div><div class="card-body">${d.cta}</div></div>`:''}
+        <button class="btn-secondary" style="margin-top:10px" onclick="navigator.clipboard.writeText('${esc((d.hook||'')+'\\n\\n'+(d.body||'')+(d.cta?'\\n\\n'+d.cta:''))}').then(()=>toast('Legenda copiada'))">Copiar legenda completa</button>
+      </div>`;
+    } catch(e) {
+      document.getElementById('legendaOutput').innerHTML = `<div class="fade-in"><div class="card"><div class="card-body">${renderMd(raw)}</div></div></div>`;
+    }
+  } catch(e) { document.getElementById('legendaOutput').innerHTML = '<div class="empty-wrap"><div class="empty-txt">Erro. Tenta novamente.</div></div>'; }
+  btn.disabled = false;
+}
+
+// ── AI: GUIÕES ──
+async function gerarGuiao() {
+  const tema = document.getElementById('guiaoTema').value.trim();
+  if (!tema) { toast('Escreve o tema'); return; }
+  const btn = document.getElementById('guiaoBtn'); btn.disabled = true;
+  document.getElementById('guiaoOutput').innerHTML = '<div class="loading-wrap"><div class="spin"></div><div class="loading-txt">A gerar guião</div></div>';
+  const masterPrompt = document.getElementById('guiaoPrompt').value.trim();
+  const formato = document.getElementById('guiaoFormato').value;
+  const tones = Array.from(document.querySelectorAll('#t-guioes .chip.on')).map(c=>c.textContent).join(', ');
+  const sys = getSys() + (masterPrompt ? '\n\nINSTRUÇÕES ESPECÍFICAS PARA GUIÕES:\n' + masterPrompt : '');
+  const fmtDesc = {reel:'Reel de 30-60 segundos',  'reel-longo':'Reel de 60-90 segundos', carrossel:'Carrossel (guião slide a slide)', youtube:'Vídeo YouTube 5-10 minutos', podcast:'Podcast / Áudio', copy:'Copy de post (texto puro)'}[formato]||formato;
+  const prompt = `Cria um guião de ${fmtDesc} para @patriciop_legal.\n\nTEMA: ${tema}\nTOM: ${tones}\n\nResponde em prosa estruturada em português de Portugal. Inclui: abertura impactante, desenvolvimento do argumento, encerramento memorável. Sem bullets, sem emojis.`;
+  try {
+    const data = await callAPI(sys, [{role:'user',content:prompt}], 1500);
+    const reply = getReply(data);
+    document.getElementById('guiaoOutput').innerHTML = `<div class="fade-in">
+      <div class="card">
+        <div class="card-label">${fmtDesc} <button class="btn-ghost" style="padding:2px 8px;font-size:11px" onclick="navigator.clipboard.writeText(${JSON.stringify(reply)}).then(()=>toast('Copiado'))">Copiar</button></div>
+        <div class="card-body" style="font-size:13px;line-height:1.85">${renderMd(reply)}</div>
+      </div>
+    </div>`;
+  } catch(e) { document.getElementById('guiaoOutput').innerHTML = '<div class="empty-wrap"><div class="empty-txt">Erro. Tenta novamente.</div></div>'; }
+  btn.disabled = false;
+}
+
+// ── FATURAÇÃO ──
+function renderDashSidebar() {
+  const year = document.getElementById('fatYear')?.value || '2026';
+  const all = PA.get('faturacao', []);
+  const targets = PA.get('fat_targets', {});
+  const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const el = document.getElementById('dashYear'); if(el) el.textContent = year;
+  const allYears = [...new Set(all.map(f=>f.year))].sort().reverse().slice(0,4);
+  const cards = allYears.map(y => {
+    const tot = all.filter(f=>f.year===y).reduce((s,f)=>s+(f.amount||0),0);
+    const tgt = targets[y]||0; const pct = tgt?Math.round(tot/tgt*100):null;
+    return `<div style="background:var(--bg);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:5px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+        <span style="font-size:11px;color:var(--text-muted)">${y}</span>
+        ${pct!==null?`<span style="font-size:10px;color:${pct>=100?'var(--green)':'var(--text-muted)'}">${pct}%</span>`:''}
+      </div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--navy);font-weight:600">${tot.toLocaleString('pt-PT')}€</div>
+      ${tgt?`<div class="prog-bar"><div class="prog-fill gold" style="width:${Math.min(100,pct||0)}%"></div></div>`:''}
+    </div>`;
+  }).join('');
+  const dc = document.getElementById('dashCards'); if(dc) dc.innerHTML = cards||'<div style="font-size:11px;color:var(--text-light)">Sem dados</div>';
+  const yearData = all.filter(f=>f.year===year).sort((a,b)=>a.month.localeCompare(b.month));
+  const maxAmt = Math.max(...yearData.map(f=>f.amount||0),1);
+  const mHtml = yearData.map(f=>`<div style="margin-bottom:5px">
+    <div style="display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px">
+      <span style="color:var(--text-muted)">${months[parseInt(f.month)-1]}</span>
+      <span style="color:var(--text-mid);font-weight:500">${(f.amount||0).toLocaleString('pt-PT')}€</span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" style="width:${Math.round((f.amount||0)/maxAmt*100)}%;background:var(--navy)"></div></div>
+  </div>`).join('');
+  const dm = document.getElementById('dashMonths'); if(dm) dm.innerHTML = mHtml||'<div style="font-size:11px;color:var(--text-light)">Sem meses</div>';
+  const tHtml = Object.entries(targets).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,4).map(([y,t])=>{
+    const tot = all.filter(f=>f.year===y).reduce((s,f)=>s+(f.amount||0),0);
+    const pct = t?Math.round(tot/t*100):0;
+    return `<div style="margin-bottom:7px">
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:2px">${y} — ${t.toLocaleString('pt-PT')}€</div>
+      <div class="prog-bar"><div class="prog-fill ${pct>=100?'green':'gold'}" style="width:${Math.min(100,pct)}%"></div></div>
+      <div style="font-size:10px;color:${pct>=100?'var(--green)':'var(--text-muted)'};margin-top:2px">${pct}%</div>
+    </div>`;
+  }).join('');
+  const dt = document.getElementById('dashTargets'); if(dt) dt.innerHTML = tHtml||'<div style="font-size:11px;color:var(--text-light)">Sem objetivos</div>';
+}
+
+function renderFat() {
+  const year = document.getElementById('fatYear').value;
+  const all = PA.get('faturacao', []);
+  const data = all.filter(f => f.year===year).sort((a,b)=>a.month.localeCompare(b.month));
+  const months = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const targets = PA.get('fat_targets', {});
+  const target = targets[year]||0;
+  const total = data.reduce((s,f)=>s+(f.amount||0),0);
+  const avg = data.length?Math.round(total/data.length):0;
+  const pctT = target?Math.round(total/target*100):0;
+  document.getElementById('fatStats').innerHTML = `
+    <div class="stat-card"><div class="stat-lbl">Total ${year}</div><div class="stat-val" style="font-size:26px">${total.toLocaleString('pt-PT')}€</div><div class="stat-sub">${data.length} meses</div></div>
+    <div class="stat-card"><div class="stat-lbl">Média mensal</div><div class="stat-val" style="font-size:24px">${avg.toLocaleString('pt-PT')}€</div></div>
+    <div class="stat-card"><div class="stat-lbl">Objetivo ${year}</div><div class="stat-val gold" style="font-size:22px">${target?target.toLocaleString('pt-PT')+'€':'—'}</div><div class="stat-sub">${pctT?pctT+'% atingido':''}</div></div>
+    <div class="stat-card"><div class="stat-lbl">A faltar</div><div class="stat-val ${target&&total<target?'red':'green'}" style="font-size:22px">${target?Math.max(0,target-total).toLocaleString('pt-PT')+'€':'—'}</div></div>`;
+  const list = document.getElementById('fatList'), empty = document.getElementById('fatEmpty');
+  if (!data.length) { list.innerHTML=''; empty.style.display='block'; renderDashSidebar(); return; }
+  empty.style.display='none';
+  const maxAmt = Math.max(...data.map(f=>f.amount||0));
+  list.innerHTML = data.map(f=>{
+    const pct = maxAmt?Math.round((f.amount||0)/maxAmt*100):0;
+    const mpct = target?Math.round((f.amount||0)/(target/12)*100):null;
+    return `<div class="month-card">
+      <div class="month-name">${months[parseInt(f.month)-1]}</div>
+      <div class="month-bar-wrap">
+        <div class="prog-bar" style="margin-top:0"><div class="prog-fill" style="width:${pct}%;background:var(--navy)"></div></div>
+        ${f.note?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px">${f.note}</div>`:''}
+      </div>
+      <div class="month-amount">${(f.amount||0).toLocaleString('pt-PT')}€</div>
+      ${mpct!==null?`<div style="font-size:11px;min-width:42px;text-align:right;color:${mpct>=100?'var(--green)':'var(--text-muted)'}">${mpct}%</div>`:''}
+      <button class="btn-ghost" style="font-size:11px;color:var(--red);padding:3px 7px" onclick="delFat('${f.id}')">×</button>
+    </div>`;
+  }).join('');
+  // Multi-year evolution
+  const allYears = [...new Set(all.map(f=>f.year))].sort();
+  if (allYears.length>1) {
+    document.getElementById('fatEvolution').style.display='block';
+    document.getElementById('fatEvoDivider').style.display='block';
+    const rows = months.map((m,mi)=>{
+      const mStr=String(mi+1).padStart(2,'0');
+      const cells=allYears.map(y=>{const f=all.find(x=>x.year===y&&x.month===mStr);return`<td style="padding:8px 11px;text-align:right;font-size:12px;color:var(--text-mid)">${f?(f.amount||0).toLocaleString('pt-PT')+'€':'—'}</td>`;}).join('');
+      return`<tr><td style="padding:8px 11px;font-size:12px;color:var(--text-mid)">${m}</td>${cells}</tr>`;
+    }).join('');
+    document.getElementById('fatEvoTable').innerHTML=`<div style="overflow-x:auto"><table class="p-table"><thead><tr><th>Mês</th>${allYears.map(y=>`<th>${y}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+    const yTotals=allYears.map(y=>all.filter(f=>f.year===y).reduce((s,f)=>s+(f.amount||0),0));
+    const maxY=Math.max(...yTotals,1);
+    document.getElementById('fatEvoChart').innerHTML=allYears.map((y,i)=>`<div style="margin-bottom:9px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="font-weight:500;color:var(--text)">${y}</span><span style="color:var(--navy);font-weight:600">${yTotals[i].toLocaleString('pt-PT')}€</span></div><div class="prog-bar"><div class="prog-fill" style="width:${Math.round(yTotals[i]/maxY*100)}%;background:var(--navy)"></div></div></div>`).join('');
+  }
+  renderDashSidebar();
+}
+function saveFat() {
+  const f={id:Date.now().toString(),month:document.getElementById('fatMonth').value,year:document.getElementById('fatYearInput').value,amount:parseFloat(document.getElementById('fatAmount').value)||0,note:document.getElementById('fatNote').value};
+  const all=PA.get('faturacao',[]); all.push(f); PA.set('faturacao',all);
+  closeModal('mFat'); renderFat(); toast('Mês registado');
+  ['fatAmount','fatNote'].forEach(id=>document.getElementById(id).value='');
+}
+function delFat(id) { PA.set('faturacao',PA.get('faturacao',[]).filter(f=>f.id!==id)); renderFat(); }
+function saveFatTarget() {
+  const y=document.getElementById('fatTargetYear').value, a=parseFloat(document.getElementById('fatTargetAmt').value)||0;
+  const t=PA.get('fat_targets',{}); t[y]=a; PA.set('fat_targets',t);
+  closeModal('mFatTarget'); renderFat(); toast('Objetivo guardado');
+  document.getElementById('fatTargetAmt').value='';
+}
+async function getAIFaturacao() {
+  const year=document.getElementById('fatYear').value;
+  const data=PA.get('faturacao',[]).filter(f=>f.year===year);
+  if(!data.length) return toast('Sem dados para analisar');
+  document.getElementById('fatAI').innerHTML='<div class="loading-wrap" style="min-height:80px"><div class="spin"></div></div>';
+  const target=PA.get('fat_targets',{})[year]||0;
+  const summary=data.map(f=>`${f.month}/${f.year}: ${f.amount}€`).join('; ');
+  try {
+    const d=await callAPI(getSys(),[{role:'user',content:`Analisa a faturação da P&A Legal em ${year}: ${summary}. Objetivo: ${target}€. Análise direta e concreta.`}],600);
+    document.getElementById('fatAI').innerHTML=`<div class="card"><div class="card-label">Análise IA</div><div class="card-body" style="font-size:13px;line-height:1.85">${renderMd(getReply(d))}</div></div>`;
+  } catch(e){document.getElementById('fatAI').innerHTML=''; toast('Erro','error');}
+}
+</script>
+</body>
+</html>
