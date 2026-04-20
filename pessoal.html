@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patrício IA — Pessoal</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="lockScreen">
+  <div class="lock-initial">P</div><div class="lock-subtitle">Patrício IA</div>
+  <div class="lock-quote" id="lqText"></div>
+  <div class="lock-form">
+    <input type="password" class="lock-input" id="lkInput" placeholder="••••••••">
+    <button class="lock-btn" onclick="doUnlock()">Entrar</button>
+    <div class="lock-err" id="lkErr"></div>
+  </div>
+</div>
+<div id="app">
+  <div class="topbar">
+    <a href="profissional.html" class="topbar-logo">P</a>
+    <nav id="mainNav"></nav>
+    <div class="topbar-space"></div>
+    <div class="cost-row">
+      <div class="cost-pill"><span class="cost-lbl">Sessão</span><span class="cost-val" id="cSess">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Mês</span><span class="cost-val" id="cMonth">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Total</span><span class="cost-val" id="cTotal">€0.000</span></div>
+    </div>
+  </div>
+  <div class="app-body">
+    <div class="sidebar" id="sb">
+      <div class="sb-head"><button class="sb-toggle" onclick="toggleSB()">☰</button></div>
+      <div class="sb-section">Pessoal</div>
+      <button class="nav-i active" onclick="goSec('objetivos')"><span>Objetivos</span></button>
+    </div>
+    <div class="main">
+      <div class="section on" id="s-objetivos">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">Acompanhamento</div><div class="page-title">Objetivos</div></div>
+          <div class="page-actions">
+            <select class="f-select" id="objYear" style="width:90px" onchange="renderObjs()"><option>2024</option><option>2025</option><option selected>2026</option><option>2027</option></select>
+            <select class="f-select" id="objType" style="width:130px" onchange="renderObjs()"><option value="">Todos</option><option value="profissional">Profissional</option><option value="pessoal">Pessoal</option></select>
+            <button class="btn-primary" onclick="openModal('mObj')">+ Objetivo</button>
+          </div>
+        </div>
+        <div class="scroll-body">
+          <div class="stats-grid g3" id="objStats" style="margin-bottom:18px;"></div>
+          <div id="objList"></div>
+          <div id="objEmpty" style="text-align:center;padding:60px 0;color:var(--text-light);font-size:13px;">Sem objetivos. Adiciona o primeiro.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="mObj"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Novo Objetivo</div><button class="modal-x" onclick="closeModal('mObj')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Objetivo</div><input class="f-input" id="objTitle" placeholder="Ex: Publicar O Jogo das Empresas"></div>
+    <div class="grid-2">
+      <div class="f-group"><div class="f-lbl">Tipo</div><select class="f-select" id="objTypeSel"><option value="profissional">Profissional</option><option value="pessoal">Pessoal</option></select></div>
+      <div class="f-group"><div class="f-lbl">Ano</div><select class="f-select" id="objYearSel"><option>2024</option><option>2025</option><option selected>2026</option><option>2027</option></select></div>
+    </div>
+    <div class="f-group"><div class="f-lbl">Prazo</div><input type="date" class="f-input" id="objDeadline"></div>
+    <div class="f-group"><div class="f-lbl">Como medir o sucesso</div><textarea class="f-textarea" id="objDesc" placeholder="Critério de conclusão..."></textarea></div>
+    <div class="f-group">
+      <div class="f-lbl">Progresso inicial: <span id="objProgVal">0%</span></div>
+      <input type="range" id="objProg" min="0" max="100" value="0" oninput="document.getElementById('objProgVal').textContent=this.value+'%'" style="width:100%">
+    </div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mObj')">Cancelar</button><button class="btn-primary" onclick="saveObj()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mObjUpdate"><div class="modal">
+  <div class="modal-head"><div class="modal-title" id="mUpdTitle">Atualizar</div><button class="modal-x" onclick="closeModal('mObjUpdate')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group">
+      <div class="f-lbl">Progresso: <span id="updProgVal">0%</span></div>
+      <input type="range" id="updProg" min="0" max="100" value="0" oninput="document.getElementById('updProgVal').textContent=this.value+'%'" style="width:100%">
+    </div>
+    <div class="f-group"><div class="f-lbl">Nota</div><textarea class="f-textarea" id="updNote" placeholder="O que fizeste desde a última atualização..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mObjUpdate')">Cancelar</button><button class="btn-primary" onclick="doUpdateObj()">Atualizar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mSub"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Sub-objetivo</div><button class="modal-x" onclick="closeModal('mSub')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Milestone</div><input class="f-input" id="subTitle" placeholder="Passo específico..."></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mSub')">Cancelar</button><button class="btn-primary" onclick="doAddSub()">Adicionar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+<script src="shared.js"></script>
+<script>
+let editObjId=null, editSubId=null;
+
+initLock(()=>{
+  buildNav('pessoal.html');
+  updateCostDisplay();
+  renderObjs();
+});
+
+function goSec(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav-i').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('on');
+  document.querySelector(`[onclick="goSec('${id}')"]`).classList.add('active');
+}
+let sbOpen=true;
+function toggleSB(){sbOpen=!sbOpen;document.getElementById('sb').classList.toggle('closed',!sbOpen);}
+
+function renderObjs(){
+  const year=document.getElementById('objYear').value;
+  const type=document.getElementById('objType').value;
+  let objs=PA.get('objectives',[]).filter(o=>(o.year||'2026')===year);
+  if(type) objs=objs.filter(o=>o.type===type);
+  const total=objs.length, done=objs.filter(o=>o.progress>=100).length;
+  const avg=total?Math.round(objs.reduce((s,o)=>s+(o.progress||0),0)/total):0;
+  document.getElementById('objStats').innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">Total ${year}</div><div class="stat-val">${total}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Concluídos</div><div class="stat-val green">${done}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Progresso médio</div><div class="stat-val gold" style="font-size:28px;">${avg}%</div></div>`;
+  const list=document.getElementById('objList'), empty=document.getElementById('objEmpty');
+  if(!objs.length){list.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  list.innerHTML=objs.sort((a,b)=>(b.progress||0)-(a.progress||0)).map(o=>{
+    const pct=o.progress||0;
+    const col=pct>=100?'var(--green)':pct>=50?'var(--navy)':'var(--gold-dim)';
+    const days=o.deadline?Math.ceil((new Date(o.deadline)-new Date())/86400000):null;
+    const subs=o.subObjectives||[];
+    const subsHtml=subs.length?`<div style="margin-top:10px;padding-left:12px;border-left:2px solid var(--border);">
+      ${subs.map((s,si)=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid var(--border);">
+        <input type="checkbox" ${s.done?'checked':''} onchange="toggleSub(${o.id},${si})" style="accent-color:var(--navy);cursor:pointer;">
+        <span style="font-size:12px;color:${s.done?'var(--text-muted)':'var(--text-mid)'};${s.done?'text-decoration:line-through;':''}">${s.title}</span>
+      </div>`).join('')}
+    </div>`:'';
+    return `<div style="background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow);">
+      <div style="padding:14px 18px;background:var(--gold-bg);border-bottom:1px solid #e8d8a8;display:flex;align-items:flex-start;justify-content:space-between;">
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);font-weight:600;">${o.title}</div>
+          <div style="font-size:11px;color:var(--gold-dim);margin-top:2px;">${o.type==='pessoal'?'Pessoal':'Profissional'} · ${o.year||year}${days!==null?` · ${days>0?days+'d restantes':'Prazo atingido'}`:''}</div>
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:30px;color:${col};font-weight:600;">${pct}%</div>
+      </div>
+      <div style="padding:14px 18px;">
+        ${o.desc?`<div style="font-size:12px;color:var(--text-muted);margin-bottom:10px;line-height:1.5;">${o.desc}</div>`:''}
+        <div class="prog-bar" style="margin-bottom:8px;"><div class="prog-fill" style="width:${pct}%;background:${col};"></div></div>
+        ${subsHtml}
+        ${o.note?`<div style="font-size:11px;color:var(--text-muted);font-style:italic;margin-top:7px;">${o.note}</div>`:''}
+        <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
+          <button class="btn-secondary" style="font-size:11px;padding:4px 11px;" onclick="openUpdate(${o.id})">Atualizar</button>
+          <button class="btn-ghost" style="font-size:11px;" onclick="openAddSub(${o.id})">+ Sub-objetivo</button>
+          <button class="btn-ghost" style="font-size:11px;" onclick="aiAdvice(${o.id})">Conselho IA</button>
+          <button class="btn-ghost" style="font-size:11px;color:var(--red);" onclick="delObj(${o.id})">Remover</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function saveObj(){
+  const o={id:Date.now(),title:document.getElementById('objTitle').value.trim(),type:document.getElementById('objTypeSel').value,year:document.getElementById('objYearSel').value,deadline:document.getElementById('objDeadline').value,desc:document.getElementById('objDesc').value,progress:parseInt(document.getElementById('objProg').value)||0,date:new Date().toISOString(),subObjectives:[]};
+  if(!o.title)return toast('Escreve o objetivo');
+  const objs=PA.get('objectives',[]); objs.push(o); PA.set('objectives',objs);
+  closeModal('mObj'); renderObjs(); toast('Objetivo guardado');
+  ['objTitle','objDesc','objDeadline'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('objProg').value=0; document.getElementById('objProgVal').textContent='0%';
+}
+function openUpdate(id){
+  const o=PA.get('objectives',[]).find(x=>x.id===id); if(!o)return;
+  editObjId=id;
+  document.getElementById('mUpdTitle').textContent=o.title.slice(0,40);
+  document.getElementById('updProg').value=o.progress||0;
+  document.getElementById('updProgVal').textContent=(o.progress||0)+'%';
+  document.getElementById('updNote').value='';
+  openModal('mObjUpdate');
+}
+function doUpdateObj(){
+  const objs=PA.get('objectives',[]); const idx=objs.findIndex(o=>o.id===editObjId); if(idx<0)return;
+  objs[idx].progress=parseInt(document.getElementById('updProg').value)||0;
+  objs[idx].note=document.getElementById('updNote').value;
+  PA.set('objectives',objs); closeModal('mObjUpdate'); renderObjs(); toast('Atualizado');
+}
+function delObj(id){const o=PA.get('objectives',[]).filter(x=>x.id!==id);PA.set('objectives',o);renderObjs();}
+function openAddSub(id){editSubId=id;document.getElementById('subTitle').value='';openModal('mSub');}
+function doAddSub(){
+  const title=document.getElementById('subTitle').value.trim(); if(!title)return toast('Escreve o sub-objetivo');
+  const objs=PA.get('objectives',[]); const o=objs.find(x=>x.id===editSubId); if(!o)return;
+  if(!o.subObjectives)o.subObjectives=[];
+  o.subObjectives.push({title,done:false});
+  PA.set('objectives',objs); closeModal('mSub'); renderObjs();
+}
+function toggleSub(objId,si){
+  const objs=PA.get('objectives',[]); const o=objs.find(x=>x.id===objId); if(!o||!o.subObjectives)return;
+  o.subObjectives[si].done=!o.subObjectives[si].done;
+  const tot=o.subObjectives.length, done=o.subObjectives.filter(s=>s.done).length;
+  if(tot>0)o.progress=Math.round(done/tot*100);
+  PA.set('objectives',objs); renderObjs();
+}
+async function aiAdvice(id){
+  const o=PA.get('objectives',[]).find(x=>x.id===id); if(!o)return;
+  toast('A consultar IA...');
+  try{
+    const data=await callAPI(getSys(),[{role:'user',content:`Objetivo: "${o.title}". Progresso: ${o.progress}%. ${o.desc?'Critério: '+o.desc:''} Dá 3 ações concretas para os próximos 7 dias. Sem bullets.`}],500);
+    const reply=getReply(data);
+    const panel=document.getElementById('aiObjPanel')||document.createElement('div');
+    panel.id='aiObjPanel';
+    panel.style.cssText='position:fixed;bottom:20px;right:20px;width:360px;background:var(--white);border:1px solid var(--border2);border-radius:var(--radius);box-shadow:var(--shadow-md);padding:16px;z-index:300;max-height:300px;overflow-y:auto;';
+    panel.innerHTML=`<div style="display:flex;justify-content:space-between;margin-bottom:9px;"><div style="font-size:11px;font-weight:600;text-transform:uppercase;color:var(--gold);">${o.title.slice(0,40)}</div><button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;cursor:pointer;font-size:18px;color:var(--text-muted);">✕</button></div><div style="font-size:13px;color:var(--text-mid);line-height:1.7;">${renderMd(reply)}</div>`;
+    document.body.appendChild(panel);
+  }catch(e){toast('Erro','error');}
+}
+</script>
+</body>
+</html>

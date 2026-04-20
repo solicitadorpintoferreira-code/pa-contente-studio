@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Patrício IA — Profissional</title>
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="/manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Patrício IA">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<style>
+/* ── VIEWS SWITCHER ── */
+.view-switcher { display:flex; gap:2px; background:var(--bg); border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:2px; }
+.view-btn { background:none; border:none; padding:5px 12px; font-family:'Inter',sans-serif; font-size:11px; font-weight:500; color:var(--text-muted); cursor:pointer; border-radius:5px; transition:all .12s; white-space:nowrap; }
+.view-btn.on { background:var(--white); color:var(--navy); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+.view-btn:hover:not(.on) { color:var(--text); }
+
+/* ── CALENDAR MONTH ── */
+.cal-month-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:1px; background:var(--border); flex:1; overflow-y:auto; }
+.cal-day-header { background:var(--white); padding:6px; text-align:center; font-size:10px; font-weight:600; text-transform:uppercase; color:var(--text-muted); }
+.cal-day { background:var(--white); padding:7px 8px; min-height:80px; cursor:pointer; transition:background .1s; }
+.cal-day:hover { background:#fafaf8; }
+.cal-day.other-month { background:var(--bg); }
+.cal-day.today { background:#fffbf0; }
+.cal-day-num { font-size:11px; font-weight:500; color:var(--text-muted); margin-bottom:4px; }
+.cal-day.today .cal-day-num { color:var(--gold); font-weight:700; }
+.cal-event { font-size:10px; padding:3px 6px; margin-bottom:2px; border-radius:4px; cursor:pointer; line-height:1.3; }
+.cal-event:hover { opacity:.85; }
+.cal-event-title { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.cal-event-meta { font-size:9px; opacity:.8; margin-top:1px; }
+
+/* ── CALENDAR WEEK ── */
+.cal-week-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; flex:1; overflow-y:auto; padding:12px; }
+.cal-week-day { border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px; display:flex; flex-direction:column; gap:5px; min-height:120px; }
+.cal-week-day.today { border-color:var(--navy); }
+.cal-week-day-head { display:flex; flex-direction:column; gap:1px; margin-bottom:3px; }
+.cal-week-day-name { font-size:9px; font-weight:600; text-transform:uppercase; color:var(--text-muted); }
+.cal-week-day-num { font-size:18px; font-weight:600; color:var(--text); }
+.cal-week-day.today .cal-week-day-num { color:var(--navy); }
+.cal-week-event { border-radius:5px; padding:5px 7px; cursor:pointer; }
+.cal-week-event:hover { opacity:.85; }
+.cal-week-event-title { font-size:11px; font-weight:500; }
+.cal-week-event-meta { font-size:10px; opacity:.75; margin-top:1px; }
+
+/* ── CALENDAR LIST ── */
+.cal-list-wrap { flex:1; overflow-y:auto; }
+.cal-list-week { margin-bottom:4px; }
+.cal-list-week-head { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); padding:10px 18px 5px; background:var(--bg); position:sticky; top:0; }
+.cal-list-row { display:flex; align-items:center; gap:12px; padding:9px 18px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
+.cal-list-row:hover { background:var(--bg); }
+.cal-list-row.today { background:#fffbf0; }
+.cal-list-date { min-width:52px; font-size:12px; color:var(--text-muted); }
+.cal-list-date.today { color:var(--gold); font-weight:600; }
+.cal-list-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.cal-list-title { font-size:13px; font-weight:500; color:var(--text); flex:1; }
+.cal-list-badges { display:flex; gap:5px; align-items:center; flex-shrink:0; }
+
+/* ── CALENDAR KANBAN+CAL ── */
+.cal-split { display:flex; flex:1; overflow:hidden; }
+.cal-split-kanban { width:280px; border-right:1px solid var(--border); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:8px; }
+.cal-split-cal { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.kanban-col-head { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:var(--radius-sm); margin-bottom:4px; }
+.kanban-col-title { font-size:11px; font-weight:600; }
+.kanban-col-count { font-size:10px; padding:1px 6px; border-radius:10px; }
+.kanban-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius-sm); padding:9px 11px; cursor:pointer; margin-bottom:4px; }
+.kanban-card:hover { box-shadow:var(--shadow); }
+.kanban-card-title { font-size:12px; font-weight:500; color:var(--text); margin-bottom:3px; }
+.kanban-card-meta { font-size:10px; color:var(--text-muted); }
+
+/* ── STATUS COLORS ── */
+.s-conceito { background:#f0f0ee; color:#666; }
+.s-ideia     { background:#fdecea; color:#c0392b; }
+.s-copy      { background:#fef0e6; color:#c05a10; }
+.s-gravado   { background:#eef3fc; color:#1a5ab8; }
+.s-editado   { background:#edf7f1; color:#2a7a4a; }
+.s-publicado { background:#f3e5f5; color:#6b3fa0; }
+
+/* ── CONTENT PANEL ── */
+.content-panel { position:fixed; right:0; top:50px; bottom:0; width:400px; background:var(--white); border-left:1px solid var(--border2); box-shadow:-4px 0 20px rgba(0,0,0,.08); display:flex; flex-direction:column; z-index:100; transform:translateX(100%); transition:transform .2s ease; }
+.content-panel.open { transform:translateX(0); }
+.cp-head { padding:15px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; flex-shrink:0; }
+.cp-title { flex:1; font-family:'Cormorant Garamond',serif; font-size:19px; color:var(--navy); font-weight:600; border:none; background:none; outline:none; }
+.cp-close { background:none; border:none; font-size:20px; color:var(--text-muted); cursor:pointer; border-radius:5px; padding:2px 6px; }
+.cp-body { flex:1; overflow-y:auto; padding:15px 18px; display:flex; flex-direction:column; gap:11px; }
+.cp-field-row { display:grid; grid-template-columns:110px 1fr; align-items:center; gap:8px; }
+.cp-label { font-size:11px; color:var(--text-muted); }
+.cp-foot { padding:11px 18px; border-top:1px solid var(--border); display:flex; gap:7px; flex-shrink:0; }
+
+/* ── FATURAÇÃO ── */
+.fat-chart-bar { display:flex; align-items:flex-end; gap:5px; padding:0 0 6px; }
+.fat-bar-wrap { flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; cursor:pointer; }
+.fat-bar { width:100%; border-radius:3px 3px 0 0; transition:opacity .15s; }
+.fat-bar:hover { opacity:.8; }
+.fat-bar.current { border:2px solid var(--gold); }
+.fat-bar.projected { opacity:.35; border:1.5px dashed var(--border2); }
+.fat-bar-label { font-size:9px; color:var(--text-muted); }
+.fat-bar-val { font-size:9px; font-weight:600; color:var(--text-mid); }
+
+/* Tooltip for bar chart */
+.fat-tooltip { position:absolute; background:var(--navy); color:#fff; font-size:11px; padding:6px 10px; border-radius:var(--radius-sm); pointer-events:none; white-space:nowrap; z-index:50; display:none; }
+
+/* Line chart */
+.fat-line-wrap { position:relative; flex:1; }
+
+/* Cards grid */
+.fat-cards-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; padding:0 18px; }
+.fat-month-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:13px 14px; cursor:pointer; }
+.fat-month-card.current { border-color:var(--gold); border-width:1.5px; }
+.fat-month-card.projected { opacity:.5; border-style:dashed; }
+.fat-month-card:hover:not(.projected) { box-shadow:var(--shadow); }
+
+/* Table view */
+.fat-table-row:hover td { background:var(--bg); }
+.fat-table-row.current td { background:#fffbf0; }
+
+/* ── DASHBOARD ── */
+.dash-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+.dash-kpi { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+.dash-kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+.dash-kpi.k-navy::before { background:var(--navy); }
+.dash-kpi.k-gold::before { background:var(--gold); }
+.dash-kpi.k-green::before { background:var(--green); }
+.dash-kpi.k-red::before { background:var(--red); }
+.dash-kpi-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--text-muted); margin-bottom:6px; }
+.dash-kpi-val { font-family:'Cormorant Garamond',serif; font-size:34px; font-weight:600; line-height:1; color:var(--navy); }
+.dash-kpi-val.gold { color:var(--gold-dim); }
+.dash-kpi-val.green { color:var(--green); }
+.dash-kpi-val.red { color:var(--red); }
+.dash-kpi-sub { font-size:11px; color:var(--text-muted); margin-top:5px; }
+.dash-prog { height:4px; background:var(--border); border-radius:2px; margin-top:8px; overflow:hidden; }
+.dash-prog-fill { height:100%; border-radius:2px; }
+.dash-section-card { background:var(--white); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden; }
+.dash-section-head { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.dash-section-title { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:var(--gold); }
+.dash-section-link { font-size:11px; color:var(--text-muted); text-decoration:none; }
+.dash-section-link:hover { color:var(--navy); }
+.dash-post-row { display:flex; align-items:center; gap:9px; padding:8px 14px; border-bottom:1px solid var(--border); }
+.dash-post-row:last-child { border-bottom:none; }
+.dash-post-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dash-post-info { flex:1; min-width:0; }
+.dash-post-title { font-size:12px; font-weight:500; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dash-post-meta { font-size:10px; color:var(--text-muted); margin-top:1px; }
+.alert-strip { background:var(--orange-bg); border:1px solid #f0c090; border-radius:var(--radius-sm); padding:9px 14px; font-size:12px; color:var(--orange); display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+.ring-wrap { position:relative; width:70px; height:70px; flex-shrink:0; }
+.ring-center { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-size:17px; font-weight:600; color:var(--navy); }
+</style>
+</head>
+<body>
+<div id="lockScreen">
+  <div class="lock-initial">P</div><div class="lock-subtitle">Patrício IA</div>
+  <div class="lock-quote" id="lqText"></div>
+  <div class="lock-form">
+    <input type="password" class="lock-input" id="lkInput" placeholder="••••••••">
+    <button class="lock-btn" onclick="doUnlock()">Entrar</button>
+    <div class="lock-err" id="lkErr"></div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <a href="profissional.html" class="topbar-logo">P</a>
+    <nav id="mainNav"></nav>
+    <div class="topbar-space"></div>
+    <div class="cost-row">
+      <div class="cost-pill"><span class="cost-lbl">Sessão</span><span class="cost-val" id="cSess">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Mês</span><span class="cost-val" id="cMonth">€0.000</span></div>
+      <div class="cost-pill"><span class="cost-lbl">Total</span><span class="cost-val" id="cTotal">€0.000</span></div>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <div class="sidebar" id="sb">
+      <div class="sb-head"><button class="sb-toggle" onclick="toggleSB()">☰</button></div>
+      <div class="sb-section">Profissional</div>
+      <button class="nav-i active" onclick="goSec('dashboard')"><span>Dashboard</span></button>
+      <button class="nav-i" onclick="goSec('conteudo')"><span>Conteúdo</span></button>
+      <button class="nav-i" onclick="goSec('faturacao')"><span>Faturação P&A</span></button>
+    </div>
+
+    <div class="main">
+
+      <!-- ══ DASHBOARD ══ -->
+      <div class="section on" id="s-dashboard">
+        <div class="page-head">
+          <div class="page-head-left">
+            <div class="page-eye">Patrício IA</div>
+            <div class="page-title">Dashboard</div>
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)" id="dashDate"></div>
+        </div>
+        <div class="scroll-body">
+          <div id="dashAlerts"></div>
+          <div class="dash-kpi-grid" id="dashKPIs" style="margin-bottom:18px;"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+            <div class="dash-section-card">
+              <div class="dash-section-head">
+                <div class="dash-section-title">Próximos posts</div>
+                <a href="#" class="dash-section-link" onclick="goSec('conteudo');return false">Ver calendário →</a>
+              </div>
+              <div id="dashPosts"></div>
+            </div>
+            <div class="dash-section-card">
+              <div class="dash-section-head">
+                <div class="dash-section-title">Faturação</div>
+                <a href="#" class="dash-section-link" onclick="goSec('faturacao');return false">Ver detalhe →</a>
+              </div>
+              <div id="dashFat" style="padding:12px 14px;"></div>
+            </div>
+            <div class="dash-section-card">
+              <div class="dash-section-head">
+                <div class="dash-section-title">O Livro</div>
+                <a href="livro.html" class="dash-section-link">Escrever →</a>
+              </div>
+              <div id="dashLivro" style="padding:12px 14px;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CONTEÚDO ══ -->
+      <div class="section" id="s-conteudo">
+        <!-- Toolbar -->
+        <div style="background:var(--white);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:8px 16px;gap:12px;flex-shrink:0;">
+          <div class="view-switcher">
+            <button class="view-btn on" onclick="setCalView('month')">Mês</button>
+            <button class="view-btn" onclick="setCalView('week')">Semana</button>
+            <button class="view-btn" onclick="setCalView('list')">Lista</button>
+            <button class="view-btn" onclick="setCalView('split')">Kanban + Cal</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <button class="btn-secondary" onclick="calNav(-1)">‹</button>
+            <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy);min-width:160px;text-align:center;" id="calTitle"></div>
+            <button class="btn-secondary" onclick="calNav(1)">›</button>
+            <button class="btn-ghost" onclick="calToday()">Hoje</button>
+          </div>
+          <div style="flex:1;"></div>
+          <button class="btn-primary" onclick="newPost('')">+ Novo post</button>
+        </div>
+        <!-- Calendar views container -->
+        <div id="calContainer" style="display:flex;flex-direction:column;flex:1;overflow:hidden;"></div>
+      </div>
+
+      <!-- ══ FATURAÇÃO ══ -->
+      <div class="section" id="s-faturacao">
+        <div class="page-head">
+          <div class="page-head-left"><div class="page-eye">P&A Legal</div><div class="page-title">Faturação</div></div>
+          <div class="page-actions">
+            <div class="view-switcher">
+              <button class="view-btn on" onclick="setFatView('bars')">Barras</button>
+              <button class="view-btn" onclick="setFatView('table')">Tabela</button>
+              <button class="view-btn" onclick="setFatView('cards')">Cards</button>
+              <button class="view-btn" onclick="setFatView('line')">Evolução</button>
+            </div>
+            <button class="btn-secondary" onclick="openModal('mFatTarget')">Objetivo</button>
+            <button class="btn-secondary" onclick="getAIFaturacao()">Análise IA</button>
+            <button class="btn-primary" onclick="openModal('mFat')">+ Mês</button>
+          </div>
+        </div>
+        <div style="display:flex;flex:1;overflow:hidden;">
+          <!-- Sidebar dashboard -->
+          <div style="width:200px;min-width:200px;background:var(--white);border-right:1px solid var(--border);overflow-y:auto;padding:14px 12px;flex-shrink:0;">
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:10px;">Resumo</div>
+            <div id="fatSideYear" style="font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--navy);font-weight:600;margin-bottom:10px;"></div>
+            <div id="fatSideCards"></div>
+            <div style="font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin:12px 0 7px;">Meses</div>
+            <div id="fatSideBars"></div>
+          </div>
+          <!-- Main view -->
+          <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+            <div style="padding:12px 18px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+              <div class="stats-grid" id="fatKPIs" style="margin-bottom:0;flex:1;"></div>
+              <div style="margin-left:12px;">
+                <select class="f-select" style="width:100px;" id="fatYearSel" onchange="renderFat()">
+                  <option value="2023">2023</option><option value="2024">2024</option><option value="2025">2025</option><option value="2026" selected>2026</option><option value="2027">2027</option>
+                </select>
+              </div>
+            </div>
+            <div class="divider" style="margin:12px 18px;"></div>
+            <div id="fatMainView" style="flex:1;overflow-y:auto;padding:0 18px 20px;position:relative;"></div>
+            <div id="fatAI" style="padding:0 18px 16px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /app-body -->
+</div><!-- /app -->
+
+<!-- Content Panel -->
+<div class="content-panel" id="contentPanel">
+  <div class="cp-head">
+    <button class="cp-close" onclick="closePanel()">✕</button>
+    <input class="cp-title" id="cpTitle" placeholder="Título do conteúdo..." onblur="savePanel()">
+  </div>
+  <div class="cp-body">
+    <div class="cp-field-row">
+      <div class="cp-label">Status</div>
+      <select class="f-select" id="cpStatus" onchange="savePanel();renderCurrentCal()">
+        <option value="conceito">Conceito</option><option value="ideia">Ideia</option>
+        <option value="copy">Copy pronto</option><option value="gravado">Gravado</option>
+        <option value="editado">Editado</option><option value="publicado">Publicado</option>
+      </select>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-label">Tipo</div>
+      <select class="f-select" id="cpTipo" onchange="savePanel()">
+        <option>Reels</option><option>Estático</option><option>Autoridade</option><option>Q&A</option>
+        <option>Artigo P&A</option><option>Carrossel</option><option>Stories</option><option>LinkedIn</option><option>YouTube</option>
+      </select>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-label">Plataforma</div>
+      <select class="f-select" id="cpPlat" onchange="savePanel()">
+        <option>Instagram</option><option>LinkedIn</option><option>YouTube</option><option>Podcast</option><option>Site</option>
+      </select>
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-label">Publicação</div>
+      <input type="date" class="f-input" id="cpDataPub" onchange="savePanel();renderCurrentCal()">
+    </div>
+    <div class="cp-field-row">
+      <div class="cp-label">Prazo copy</div>
+      <input type="date" class="f-input" id="cpPrazo" onchange="savePanel()">
+    </div>
+    <div class="divider" style="margin:2px 0;"></div>
+    <div class="f-group">
+      <div class="f-lbl">Copy / Guião</div>
+      <textarea class="f-textarea" id="cpCopy" style="min-height:110px;" oninput="savePanel()"></textarea>
+    </div>
+    <div class="f-group">
+      <div class="f-lbl">Notas</div>
+      <textarea class="f-textarea" id="cpNotas" style="min-height:55px;" oninput="savePanel()"></textarea>
+    </div>
+    <div id="cpWarn" style="display:none;background:var(--orange-bg);border:1px solid #f0c090;border-radius:var(--radius-sm);padding:9px 12px;font-size:12px;color:var(--orange);">⚠ Publicação em menos de 3 dias e copy não está pronto.</div>
+  </div>
+  <div class="cp-foot">
+    <button class="btn-danger" onclick="deletePost()">Apagar</button>
+    <div style="flex:1;"></div>
+    <button class="btn-secondary" onclick="closePanel()">Fechar</button>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="fat-tooltip" id="fatTooltip"></div>
+
+<!-- MODALS -->
+<div class="modal-bg" id="mFatTarget"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Objetivo Anual</div><button class="modal-x" onclick="closeModal('mFatTarget')">✕</button></div>
+  <div class="modal-body">
+    <div class="f-group"><div class="f-lbl">Ano</div><select class="f-select" id="ftYear"><option>2024</option><option>2025</option><option selected>2026</option><option>2027</option></select></div>
+    <div class="f-group"><div class="f-lbl">Objetivo (€)</div><input type="number" class="f-input" id="ftAmt" placeholder="Ex: 300000"></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mFatTarget')">Cancelar</button><button class="btn-primary" onclick="saveFatTarget()">Guardar</button></div>
+</div></div>
+
+<div class="modal-bg" id="mFat"><div class="modal">
+  <div class="modal-head"><div class="modal-title">Registar Mês</div><button class="modal-x" onclick="closeModal('mFat')">✕</button></div>
+  <div class="modal-body">
+    <div class="grid-2">
+      <div class="f-group"><div class="f-lbl">Mês</div><select class="f-select" id="fMonth">
+        <option value="01">Janeiro</option><option value="02">Fevereiro</option><option value="03">Março</option><option value="04">Abril</option>
+        <option value="05">Maio</option><option value="06">Junho</option><option value="07">Julho</option><option value="08">Agosto</option>
+        <option value="09">Setembro</option><option value="10">Outubro</option><option value="11">Novembro</option><option value="12">Dezembro</option>
+      </select></div>
+      <div class="f-group"><div class="f-lbl">Ano</div><select class="f-select" id="fYear">
+        <option>2023</option><option>2024</option><option>2025</option><option selected>2026</option><option>2027</option>
+      </select></div>
+    </div>
+    <div class="f-group"><div class="f-lbl">Faturação (€)</div><input type="number" class="f-input" id="fAmt" placeholder="25000"></div>
+    <div class="f-group"><div class="f-lbl">Nota</div><textarea class="f-textarea" id="fNote" placeholder="Projetos principais..."></textarea></div>
+  </div>
+  <div class="modal-foot"><button class="btn-secondary" onclick="closeModal('mFat')">Cancelar</button><button class="btn-primary" onclick="saveFat()">Guardar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="shared.js"></script>
+<script>
+// ── CONSTANTS ──
+const STATUS_LABEL = {conceito:'Conceito',ideia:'Ideia',copy:'Copy pronto',gravado:'Gravado',editado:'Editado',publicado:'Publicado'};
+const STATUS_COLOR = {conceito:'#f0f0ee',ideia:'#fdecea',copy:'#fef0e6',gravado:'#eef3fc',editado:'#edf7f1',publicado:'#f3e5f5'};
+const STATUS_TEXT  = {conceito:'#666',ideia:'#c0392b',copy:'#c05a10',gravado:'#1a5ab8',editado:'#2a7a4a',publicado:'#6b3fa0'};
+const STATUS_ORDER = ['conceito','ideia','copy','gravado','editado','publicado'];
+const MONTHS = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MONTHS_S = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+// ── STATE ──
+let calView = 'month';
+let calDate = new Date();
+let activePostId = null;
+let fatView = 'bars';
+
+// ── INIT ──
+initLock(() => {
+  buildNav('profissional.html');
+  updateCostDisplay();
+  document.getElementById('dashDate').textContent = new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  renderDashboard();
+  renderCurrentCal();
+  renderFat();
+});
+
+function goSec(id) {
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav-i').forEach(b=>b.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('on');
+  document.querySelector(`[onclick="goSec('${id}')"]`).classList.add('active');
+  if(id==='conteudo') renderCurrentCal();
+  if(id==='faturacao') renderFat();
+  if(id==='dashboard') renderDashboard();
+}
+let sbOpen=true;
+function toggleSB(){sbOpen=!sbOpen;document.getElementById('sb').classList.toggle('closed',!sbOpen);}
+
+// ── DATA ──
+function getPosts(){return PA.get('posts',[]);}
+function setPosts(p){PA.set('posts',p);}
+
+// ── DASHBOARD ──
+function renderDashboard() {
+  const posts = getPosts();
+  const today = new Date().toISOString().split('T')[0];
+  const thisMonth = today.slice(0,7);
+
+  // Alerts
+  const late = posts.filter(p => {
+    if(!p.dataPub || ['publicado','editado','gravado'].includes(p.status)) return false;
+    const dl = Math.ceil((new Date(p.dataPub)-new Date())/86400000);
+    return dl<=3 && dl>=0;
+  });
+  const alertsEl = document.getElementById('dashAlerts');
+  alertsEl.innerHTML = late.length
+    ? `<div class="alert-strip">⚠ <strong>${late.length} post${late.length>1?'s':''} em atraso</strong> — copy não pronto com publicação iminente: ${late.map(p=>p.title||'Sem título').join(', ')}</div>`
+    : '';
+
+  // KPIs
+  const monthPosts = posts.filter(p=>p.dataPub&&p.dataPub.startsWith(thisMonth));
+  const published = monthPosts.filter(p=>p.status==='publicado').length;
+  const planned = monthPosts.length;
+  const fat = PA.get('faturacao',[]);
+  const fatTargets = PA.get('fat_targets',{});
+  const year = new Date().getFullYear().toString();
+  const fatTotal = fat.filter(f=>f.year===year).reduce((s,f)=>s+(f.amount||0),0);
+  const fatTarget = fatTargets[year]||0;
+  const fatPct = fatTarget ? Math.round(fatTotal/fatTarget*100) : 0;
+  const chapters = PA.get('book_chapters',[]);
+  const totalWords = chapters.reduce((s,c)=>s+(c.content?c.content.split(/\s+/).filter(Boolean).length:0),0);
+
+  document.getElementById('dashKPIs').innerHTML = `
+    <div class="dash-kpi k-navy">
+      <div class="dash-kpi-label">Posts este mês</div>
+      <div class="dash-kpi-val">${published}</div>
+      <div class="dash-kpi-sub">de ${planned} planeados</div>
+      ${planned?`<div class="dash-prog"><div class="dash-prog-fill" style="width:${Math.round(published/planned*100)}%;background:var(--navy)"></div></div>`:''}
+    </div>
+    <div class="dash-kpi k-red">
+      <div class="dash-kpi-label">Em atraso</div>
+      <div class="dash-kpi-val ${late.length?'red':''}">${late.length}</div>
+      <div class="dash-kpi-sub">${late.length?'copy não pronto':'Tudo em ordem'}</div>
+    </div>
+    <div class="dash-kpi k-gold">
+      <div class="dash-kpi-label">Faturação ${year}</div>
+      <div class="dash-kpi-val gold">${fatTotal?fatTotal.toLocaleString('pt-PT')+'€':'—'}</div>
+      <div class="dash-kpi-sub">${fatTarget?'de '+fatTarget.toLocaleString('pt-PT')+'€ · '+fatPct+'%':'Sem objetivo definido'}</div>
+      ${fatTarget?`<div class="dash-prog"><div class="dash-prog-fill" style="width:${Math.min(100,fatPct)}%;background:var(--gold)"></div></div>`:''}
+    </div>
+    <div class="dash-kpi k-green">
+      <div class="dash-kpi-label">Livro</div>
+      <div class="dash-kpi-val green" style="font-size:26px;">${totalWords.toLocaleString('pt-PT')}</div>
+      <div class="dash-kpi-sub">${chapters.length} cap. · ~${Math.ceil(totalWords/250)} pág. A5</div>
+    </div>`;
+
+  // Upcoming posts
+  const upcoming = posts.filter(p=>p.dataPub&&p.dataPub>=today).sort((a,b)=>a.dataPub.localeCompare(b.dataPub)).slice(0,5);
+  document.getElementById('dashPosts').innerHTML = upcoming.length
+    ? upcoming.map(p=>{
+        const dl=Math.ceil((new Date(p.dataPub)-new Date())/86400000);
+        const isLate=dl<=3&&dl>=0&&!['publicado','editado','gravado'].includes(p.status);
+        return `<div class="dash-post-row">
+          <div class="dash-post-dot" style="background:${STATUS_TEXT[p.status]||'#999'}"></div>
+          <div class="dash-post-info">
+            <div class="dash-post-title">${p.title||'Sem título'}</div>
+            <div class="dash-post-meta">${p.plat||'Instagram'} · ${dl===0?'hoje':dl===1?'amanhã':new Date(p.dataPub).toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}</div>
+          </div>
+          ${isLate?`<span class="badge orange" style="font-size:9px;">⚠ atraso</span>`:`<span class="badge" style="background:${STATUS_COLOR[p.status]};color:${STATUS_TEXT[p.status]};font-size:9px;">${STATUS_LABEL[p.status]}</span>`}
+        </div>`;
+      }).join('')
+    : '<div style="padding:20px;text-align:center;font-size:12px;color:var(--text-light);">Sem posts agendados</div>';
+
+  // Faturação mini
+  const fatYear = fat.filter(f=>f.year===year).sort((a,b)=>a.month.localeCompare(b.month));
+  const maxFat = Math.max(...fatYear.map(f=>f.amount||0),1);
+  document.getElementById('dashFat').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px;">
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:600;color:var(--navy);">${fatTotal.toLocaleString('pt-PT')}€</div>
+        <div style="font-size:10px;color:var(--text-muted);">${fatTarget?'de '+fatTarget.toLocaleString('pt-PT')+'€ · '+fatPct+'%':'Sem objetivo'}</div>
+      </div>
+    </div>
+    ${fatTarget?`<div class="dash-prog" style="margin-bottom:10px;"><div class="dash-prog-fill" style="width:${Math.min(100,fatPct)}%;background:var(--gold);"></div></div>`:''}
+    <div style="display:flex;align-items:flex-end;gap:3px;height:50px;">
+      ${fatYear.map(f=>`<div style="flex:1;background:var(--navy);border-radius:2px 2px 0 0;height:${Math.round((f.amount||0)/maxFat*100)}%;min-height:2px;" title="${MONTHS_S[parseInt(f.month)-1]}: ${(f.amount||0).toLocaleString('pt-PT')}€"></div>`).join('')}
+    </div>`;
+
+  // Livro mini
+  const final = chapters.filter(c=>c.status==='final').length;
+  const inProgress = chapters.filter(c=>['rascunho','revisao'].includes(c.status)).length;
+  const bookPct = chapters.length ? Math.round((final/chapters.length)*100) : 0;
+  const r = 28, circ = 2*Math.PI*r;
+  document.getElementById('dashLivro').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+      <div class="ring-wrap">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle cx="35" cy="35" r="${r}" fill="none" stroke="var(--border)" stroke-width="6"/>
+          <circle cx="35" cy="35" r="${r}" fill="none" stroke="var(--gold)" stroke-width="6"
+            stroke-dasharray="${circ}" stroke-dashoffset="${circ-(circ*bookPct/100)}"
+            stroke-linecap="round" transform="rotate(-90 35 35)"/>
+        </svg>
+        <div class="ring-center">${bookPct}%</div>
+      </div>
+      <div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy);">${totalWords.toLocaleString('pt-PT')}</div>
+        <div style="font-size:10px;color:var(--text-muted);">palavras · ~${Math.ceil(totalWords/250)} pág. A5</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${chapters.length} cap. · ${final} finais · ${inProgress} em curso</div>
+      </div>
+    </div>
+    ${chapters.sort((a,b)=>(a.order||a.num||0)-(b.order||b.num||0)).slice(0,4).map(c=>{
+      const w=c.content?c.content.split(/\s+/).filter(Boolean).length:0;
+      const sc={ideia:'#f0f0ee',rascunho:STATUS_COLOR.copy,revisao:STATUS_COLOR.gravado,final:STATUS_COLOR.editado};
+      const st={ideia:'#666',rascunho:STATUS_TEXT.copy,revisao:STATUS_TEXT.gravado,final:STATUS_TEXT.editado};
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <div style="font-size:10px;font-weight:600;color:var(--gold);min-width:36px;">${c.chapType==='introducao'?'Intro':'Cap.'+(c.num||'')}</div>
+        <div style="flex:1;font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${c.title}</div>
+        <span style="font-size:9px;padding:1px 7px;border-radius:20px;background:${sc[c.status||'ideia']};color:${st[c.status||'ideia']};">${{ideia:'Ideia',rascunho:'Rascunho',revisao:'Revisão',final:'Final'}[c.status||'ideia']}</span>
+      </div>`;
+    }).join('')}`;
+}
+
+// ── CALENDAR ──
+function setCalView(v) {
+  calView = v;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('on'));
+  event.target.classList.add('on');
+  renderCurrentCal();
+}
+
+function renderCurrentCal() {
+  updateCalTitle();
+  const c = document.getElementById('calContainer');
+  switch(calView) {
+    case 'month': renderCalMonth(c); break;
+    case 'week':  renderCalWeek(c);  break;
+    case 'list':  renderCalList(c);  break;
+    case 'split': renderCalSplit(c); break;
+  }
+}
+
+function updateCalTitle() {
+  const t = document.getElementById('calTitle'); if(!t) return;
+  if(calView==='month') t.textContent = MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+  else if(calView==='week') {
+    const d = getWeekStart(calDate);
+    const e = new Date(d); e.setDate(e.getDate()+6);
+    t.textContent = d.getDate()+' – '+e.getDate()+' '+MONTHS_S[e.getMonth()]+' '+e.getFullYear();
+  } else if(calView==='list') t.textContent = MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+  else t.textContent = MONTHS[calDate.getMonth()]+' '+calDate.getFullYear();
+}
+
+function calNav(dir) {
+  if(calView==='week') { calDate.setDate(calDate.getDate()+dir*7); }
+  else { calDate.setMonth(calDate.getMonth()+dir); }
+  renderCurrentCal();
+}
+function calToday() { calDate = new Date(); renderCurrentCal(); }
+function getWeekStart(d) { const s=new Date(d); s.setDate(s.getDate()-s.getDay()); return s; }
+
+// ── MONTH VIEW ──
+function renderCalMonth(container) {
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+  const prev=new Date(y,m,0).getDate(), today=new Date();
+  const posts=getPosts();
+  const days=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  let html=`<div style="display:grid;grid-template-columns:repeat(7,1fr);background:var(--white);border-bottom:1px solid var(--border);flex-shrink:0;">
+    ${days.map(d=>`<div class="cal-day-header">${d}</div>`).join('')}
+  </div>
+  <div class="cal-month-grid">`;
+
+  for(let i=first-1;i>=0;i--) html+=`<div class="cal-day other-month"><div class="cal-day-num">${prev-i}</div></div>`;
+
+  for(let day=1;day<=dim;day++) {
+    const ds=`${y}-${pad(m+1)}-${pad(day)}`;
+    const isT=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===day;
+    const dayPosts=posts.filter(p=>p.dataPub===ds);
+    html+=`<div class="cal-day${isT?' today':''}" onclick="calDayClick('${ds}',event)">
+      <div class="cal-day-num">${day}</div>
+      ${dayPosts.map(p=>{
+        const dl=Math.ceil((new Date(p.dataPub)-new Date())/86400000);
+        const warn=dl<=3&&dl>=0&&!['publicado','editado','gravado'].includes(p.status);
+        return `<div class="cal-event" style="background:${STATUS_COLOR[p.status]};color:${STATUS_TEXT[p.status]};"
+          onclick="openPost(${p.id});event.stopPropagation()">
+          <div class="cal-event-title">${warn?'⚠ ':''}${esc(p.title||'Sem título')}</div>
+          <div class="cal-event-meta">${STATUS_LABEL[p.status]} · ${p.plat||'IG'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  const rem=42-first-dim;
+  for(let i=1;i<=rem;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+// ── WEEK VIEW ──
+function renderCalWeek(container) {
+  const ws=getWeekStart(calDate), today=new Date();
+  const posts=getPosts();
+  const days=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(d.getDate()+i);return d;});
+  const dayNames=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+  let html=`<div class="cal-week-grid">`;
+  days.forEach(d=>{
+    const ds=d.toISOString().split('T')[0];
+    const isT=d.toDateString()===today.toDateString();
+    const dayPosts=posts.filter(p=>p.dataPub===ds);
+    html+=`<div class="cal-week-day${isT?' today':''}" onclick="calDayClick('${ds}',event)">
+      <div class="cal-week-day-head">
+        <div class="cal-week-day-name">${dayNames[d.getDay()]}</div>
+        <div class="cal-week-day-num">${d.getDate()}</div>
+      </div>
+      ${dayPosts.map(p=>{
+        const warn=p.dataPub&&Math.ceil((new Date(p.dataPub)-new Date())/86400000)<=3&&!['publicado','editado','gravado'].includes(p.status);
+        return `<div class="cal-week-event" style="background:${STATUS_COLOR[p.status]};color:${STATUS_TEXT[p.status]};"
+          onclick="openPost(${p.id});event.stopPropagation()">
+          <div class="cal-week-event-title">${warn?'⚠ ':''}${esc(p.title||'Sem título')}</div>
+          <div class="cal-week-event-meta">${STATUS_LABEL[p.status]} · ${p.plat||'IG'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  });
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+// ── LIST VIEW ──
+function renderCalList(container) {
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  const posts=getPosts().filter(p=>p.dataPub&&p.dataPub.startsWith(`${y}-${pad(m+1)}`)).sort((a,b)=>a.dataPub.localeCompare(b.dataPub));
+  const today=new Date().toISOString().split('T')[0];
+
+  if(!posts.length) {
+    container.innerHTML='<div style="flex:1;display:flex;align-items:center;justify-content:center;"><div class="empty-wrap"><div class="empty-mono">P</div><div class="empty-txt">Sem posts em '+MONTHS[m]+'</div></div></div>';
+    return;
+  }
+
+  // Group by week
+  const weeks={};
+  posts.forEach(p=>{
+    const d=new Date(p.dataPub), wd=Math.floor((d.getDate()-1)/7);
+    if(!weeks[wd]) weeks[wd]=[];
+    weeks[wd].push(p);
+  });
+
+  let html='<div class="cal-list-wrap">';
+  Object.entries(weeks).forEach(([wk,wPosts])=>{
+    html+=`<div class="cal-list-week"><div class="cal-list-week-head">Semana ${parseInt(wk)+1}</div>`;
+    wPosts.forEach(p=>{
+      const d=new Date(p.dataPub);
+      const dl=Math.ceil((new Date(p.dataPub)-new Date())/86400000);
+      const isT=p.dataPub===today;
+      const warn=dl<=3&&dl>=0&&!['publicado','editado','gravado'].includes(p.status);
+      html+=`<div class="cal-list-row${isT?' today':''}" onclick="openPost(${p.id})">
+        <div class="cal-list-date${isT?' today':''}">${d.getDate()} ${MONTHS_S[d.getMonth()]}</div>
+        <div class="cal-list-dot" style="background:${STATUS_TEXT[p.status]};"></div>
+        <div class="cal-list-title">${warn?'⚠ ':''}${esc(p.title||'Sem título')}</div>
+        <div class="cal-list-badges">
+          <span class="badge" style="background:${STATUS_COLOR[p.status]};color:${STATUS_TEXT[p.status]};font-size:9px;">${STATUS_LABEL[p.status]}</span>
+          <span style="font-size:10px;color:var(--text-muted);">${p.plat||'IG'}</span>
+          <span style="font-size:10px;color:var(--text-muted);">${p.tipo||''}</span>
+        </div>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  html+='</div>';
+  container.innerHTML=html;
+}
+
+// ── SPLIT VIEW (Kanban + Calendar) ──
+function renderCalSplit(container) {
+  const posts=getPosts();
+  const kanbanHtml=STATUS_ORDER.map(status=>{
+    const col=posts.filter(p=>p.status===status);
+    return `<div>
+      <div class="kanban-col-head" style="background:${STATUS_COLOR[status]};color:${STATUS_TEXT[status]};">
+        <div class="kanban-col-title">${STATUS_LABEL[status]}</div>
+        <span class="kanban-col-count" style="background:rgba(0,0,0,.1);">${col.length}</span>
+      </div>
+      ${col.slice(0,3).map(p=>`<div class="kanban-card" onclick="openPost(${p.id})">
+        <div class="kanban-card-title">${esc(p.title||'Sem título')}</div>
+        <div class="kanban-card-meta">${p.dataPub?new Date(p.dataPub).toLocaleDateString('pt-PT',{day:'numeric',month:'short'}):''} · ${p.plat||'IG'}</div>
+      </div>`).join('')}
+      ${col.length>3?`<div style="font-size:10px;color:var(--text-muted);padding:4px 11px;">+${col.length-3} mais</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Mini month calendar
+  const y=calDate.getFullYear(), m=calDate.getMonth();
+  const first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate();
+  const prev=new Date(y,m,0).getDate(), today=new Date();
+  let cells='';
+  for(let i=first-1;i>=0;i--) cells+=`<div style="font-size:10px;color:var(--text-light);text-align:center;padding:3px 0;">${prev-i}</div>`;
+  for(let d=1;d<=dim;d++) {
+    const ds=`${y}-${pad(m+1)}-${pad(d)}`;
+    const isT=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
+    const hasP=posts.some(p=>p.dataPub===ds);
+    const dp=posts.filter(p=>p.dataPub===ds);
+    const col=dp.length?STATUS_COLOR[dp[0].status]:'transparent';
+    cells+=`<div style="position:relative;font-size:10px;text-align:center;padding:3px 0;cursor:pointer;border-radius:3px;${isT?'background:var(--navy);color:#fff;font-weight:600;':''}" onclick="calDayClick('${ds}',event)">
+      ${d}
+      ${hasP&&!isT?`<div style="position:absolute;bottom:1px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:${STATUS_TEXT[dp[0].status]};"></div>`:''}
+    </div>`;
+  }
+
+  container.innerHTML=`<div class="cal-split">
+    <div class="cal-split-kanban">${kanbanHtml}</div>
+    <div class="cal-split-cal">
+      <div style="padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:600;color:var(--navy);margin-bottom:8px;">${MONTHS[m]} ${y}</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:6px;">
+          ${['D','S','T','Q','Q','S','S'].map(d=>`<div style="font-size:9px;font-weight:600;color:var(--text-muted);text-align:center;">${d}</div>`).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">${cells}</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:10px 12px;">
+        <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);margin-bottom:8px;">Todos os posts</div>
+        ${posts.sort((a,b)=>(a.dataPub||'').localeCompare(b.dataPub||'')).map(p=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;" onclick="openPost(${p.id})">
+            <div style="width:7px;height:7px;border-radius:50%;background:${STATUS_TEXT[p.status]};flex-shrink:0;"></div>
+            <div style="flex:1;font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(p.title||'Sem título')}</div>
+            <span style="font-size:9px;background:${STATUS_COLOR[p.status]};color:${STATUS_TEXT[p.status]};padding:1px 6px;border-radius:20px;">${STATUS_LABEL[p.status]}</span>
+            ${p.dataPub?`<span style="font-size:10px;color:var(--text-muted);">${new Date(p.dataPub).toLocaleDateString('pt-PT',{day:'numeric',month:'short'})}</span>`:''}
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+function pad(n){return String(n).padStart(2,'0');}
+
+function calDayClick(ds, e) {
+  if(e&&e.target.classList.contains('cal-event')) return;
+  newPost(ds);
+}
+
+// ── POST PANEL ──
+function newPost(ds) {
+  const p={id:Date.now(),title:'',status:'ideia',tipo:'Reels',plat:'Instagram',dataPub:ds||'',prazo:'',copy:'',notas:'',created:new Date().toISOString()};
+  const posts=getPosts(); posts.unshift(p); setPosts(posts);
+  openPost(p.id); renderCurrentCal();
+}
+
+function openPost(id) {
+  const p=getPosts().find(x=>x.id===id); if(!p) return;
+  activePostId=id;
+  document.getElementById('cpTitle').value=p.title||'';
+  document.getElementById('cpStatus').value=p.status||'ideia';
+  document.getElementById('cpTipo').value=p.tipo||'Reels';
+  document.getElementById('cpPlat').value=p.plat||'Instagram';
+  document.getElementById('cpDataPub').value=p.dataPub||'';
+  document.getElementById('cpPrazo').value=p.prazo||'';
+  document.getElementById('cpCopy').value=p.copy||'';
+  document.getElementById('cpNotas').value=p.notas||'';
+  const dl=p.dataPub?Math.ceil((new Date(p.dataPub)-new Date())/86400000):null;
+  const warn=dl!==null&&dl<=3&&dl>=0&&!['publicado','editado','gravado'].includes(p.status);
+  document.getElementById('cpWarn').style.display=warn?'block':'none';
+  document.getElementById('contentPanel').classList.add('open');
+}
+
+function savePanel() {
+  if(!activePostId) return;
+  const posts=getPosts(); const idx=posts.findIndex(p=>p.id===activePostId); if(idx<0) return;
+  posts[idx].title=document.getElementById('cpTitle').value;
+  posts[idx].status=document.getElementById('cpStatus').value;
+  posts[idx].tipo=document.getElementById('cpTipo').value;
+  posts[idx].plat=document.getElementById('cpPlat').value;
+  posts[idx].dataPub=document.getElementById('cpDataPub').value;
+  posts[idx].prazo=document.getElementById('cpPrazo').value;
+  posts[idx].copy=document.getElementById('cpCopy').value;
+  posts[idx].notas=document.getElementById('cpNotas').value;
+  setPosts(posts);
+}
+
+function deletePost() {
+  if(!activePostId||!confirm('Apagar?')) return;
+  setPosts(getPosts().filter(p=>p.id!==activePostId));
+  closePanel(); renderCurrentCal(); renderDashboard();
+}
+
+function closePanel() {
+  document.getElementById('contentPanel').classList.remove('open');
+  activePostId=null;
+}
+
+// ── FATURAÇÃO ──
+function setFatView(v) {
+  fatView=v;
+  document.querySelectorAll('.view-switcher .view-btn').forEach(b=>b.classList.remove('on'));
+  event.target.classList.add('on');
+  renderFat();
+}
+
+function getFatData() {
+  const year=document.getElementById('fatYearSel')?.value||'2026';
+  const all=PA.get('faturacao',[]);
+  return {
+    year, all,
+    data: all.filter(f=>f.year===year).sort((a,b)=>a.month.localeCompare(b.month)),
+    targets: PA.get('fat_targets',{}),
+  };
+}
+
+function renderFat() {
+  const {year,all,data,targets}=getFatData();
+  const target=targets[year]||0;
+  const total=data.reduce((s,f)=>s+(f.amount||0),0);
+  const avg=data.length?Math.round(total/data.length):0;
+  const pct=target?Math.round(total/target*100):0;
+  const proj=data.length?Math.round(avg*12):0;
+
+  // Sidebar
+  document.getElementById('fatSideYear').textContent=year;
+  const allYears=[...new Set(all.map(f=>f.year))].sort().reverse().slice(0,4);
+  document.getElementById('fatSideCards').innerHTML=allYears.map(y=>{
+    const yt=all.filter(f=>f.year===y).reduce((s,f)=>s+(f.amount||0),0);
+    const ytgt=targets[y]||0; const ypct=ytgt?Math.round(yt/ytgt*100):null;
+    return `<div style="background:var(--bg);border-radius:var(--radius-sm);padding:8px 10px;margin-bottom:5px;">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-bottom:2px;"><span>${y}</span>${ypct!==null?`<span style="color:${ypct>=100?'var(--green)':'var(--text-muted)'};">${ypct}%</span>`:''}</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy);">${yt.toLocaleString('pt-PT')}€</div>
+      ${ytgt?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:4px;"><div style="width:${Math.min(100,ypct||0)}%;height:100%;background:var(--gold);border-radius:2px;"></div></div>`:''}
+    </div>`;
+  }).join('');
+
+  const maxAmt=Math.max(...data.map(f=>f.amount||0),1);
+  document.getElementById('fatSideBars').innerHTML=data.map(f=>{
+    const bp=Math.round((f.amount||0)/maxAmt*100);
+    return `<div style="margin-bottom:5px;font-size:10px;">
+      <div style="display:flex;justify-content:space-between;color:var(--text-muted);margin-bottom:2px;"><span>${MONTHS_S[parseInt(f.month)-1]}</span><span style="font-weight:600;color:var(--text-mid);">${(f.amount||0).toLocaleString('pt-PT')}€</span></div>
+      <div style="height:3px;background:var(--border);border-radius:2px;"><div style="width:${bp}%;height:100%;background:var(--navy);border-radius:2px;"></div></div>
+    </div>`;
+  }).join('');
+
+  // KPIs
+  document.getElementById('fatKPIs').innerHTML=`
+    <div class="stat-card"><div class="stat-lbl">Total ${year}</div><div class="stat-val" style="font-size:24px;">${total.toLocaleString('pt-PT')}€</div><div class="stat-sub">${data.length} meses</div></div>
+    <div class="stat-card"><div class="stat-lbl">Média mensal</div><div class="stat-val" style="font-size:24px;">${avg.toLocaleString('pt-PT')}€</div></div>
+    <div class="stat-card"><div class="stat-lbl">Objetivo ${year}</div><div class="stat-val gold" style="font-size:22px;">${target?target.toLocaleString('pt-PT')+'€':'—'}</div><div class="stat-sub">${pct?pct+'% atingido':''}</div></div>
+    <div class="stat-card"><div class="stat-lbl">Projeção anual</div><div class="stat-val" style="font-size:22px;color:var(--blue);">${data.length?proj.toLocaleString('pt-PT')+'€':'—'}</div><div class="stat-sub">${target&&data.length?`${proj>=target?'✓ acima':'abaixo'} do objetivo`:''}</div></div>`;
+
+  // Main view
+  const mv=document.getElementById('fatMainView');
+  switch(fatView) {
+    case 'bars':  renderFatBars(mv,data,target,maxAmt,year); break;
+    case 'table': renderFatTable(mv,data,target,year,all,allYears); break;
+    case 'cards': renderFatCards(mv,data,target,avg); break;
+    case 'line':  renderFatLine(mv,data,all,allYears,targets); break;
+  }
+}
+
+function renderFatBars(el,data,target,maxAmt,year) {
+  // Build 12-month array
+  const months=Array.from({length:12},(_,i)=>{
+    const m=String(i+1).padStart(2,'0');
+    const found=data.find(f=>f.month===m);
+    const now=new Date(); const isFuture=parseInt(year)>now.getFullYear()||(parseInt(year)===now.getFullYear()&&i>now.getMonth());
+    const isCurrent=parseInt(year)===now.getFullYear()&&i===now.getMonth();
+    return {month:m,name:MONTHS_S[i],amount:found?.amount||0,note:found?.note||'',isFuture,isCurrent,has:!!found};
+  });
+  const maxH=Math.max(...months.map(m=>m.amount),target?target/12:1,1);
+  const tLineH=target?Math.round((target/12)/maxH*100):null;
+
+  el.style.position='relative';
+  el.innerHTML=`
+    <div class="fat-tooltip" id="fatTooltip"></div>
+    <div style="display:flex;align-items:flex-end;gap:8px;height:200px;padding:0 4px;margin-bottom:8px;position:relative;">
+      ${tLineH!==null?`<div style="position:absolute;left:0;right:0;bottom:${tLineH}%;height:1px;background:var(--gold);opacity:.6;pointer-events:none;">
+        <span style="position:absolute;right:0;top:-14px;font-size:9px;color:var(--gold-dim);">obj. mensual</span></div>`:''}
+      ${months.map((m,i)=>{
+        const h=m.amount?Math.max(Math.round(m.amount/maxH*100),2):0;
+        const proj=m.isFuture&&!m.has;
+        const projH=tLineH||50;
+        return `<div class="fat-bar-wrap" onmouseenter="showFatTooltip(event,'${m.name}: ${m.amount.toLocaleString('pt-PT')}€${m.note?' — '+m.note:''}')" onmouseleave="hideFatTooltip()">
+          ${m.amount||proj?`<div class="fat-bar-val">${m.amount?m.amount.toLocaleString('pt-PT')+'€':''}</div>`:''}
+          <div class="fat-bar${m.isCurrent?' current':proj?' projected':''}" style="height:${proj?projH:h}%;background:${m.isCurrent?'var(--gold)':'var(--navy)'};${proj?'background:var(--border);':''};min-height:${(m.amount||proj)?'4px':'0'};"></div>
+          <div class="fat-bar-label" style="color:${m.isCurrent?'var(--gold-dim)':'var(--text-muted)'};">${m.name}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+function showFatTooltip(e,text) {
+  const t=document.getElementById('fatTooltip'); if(!t)return;
+  t.textContent=text; t.style.display='block';
+  t.style.left=(e.pageX-e.target.closest('.fat-bar-wrap').getBoundingClientRect().left-60)+'px';
+  t.style.top='-30px';
+}
+function hideFatTooltip(){const t=document.getElementById('fatTooltip');if(t)t.style.display='none';}
+
+function renderFatTable(el,data,target,year,all,allYears) {
+  const now=new Date();
+  const prevYear=String(parseInt(year)-1);
+  const prevData=all.filter(f=>f.year===prevYear);
+  const hasComp=prevData.length>0;
+
+  el.innerHTML=`<div style="overflow-x:auto;"><table class="p-table" style="width:100%;">
+    <thead><tr>
+      <th>Mês</th>
+      <th style="text-align:right;">Faturado</th>
+      ${target?'<th style="text-align:right;">vs objetivo</th>':''}
+      ${hasComp?`<th style="text-align:right;">${prevYear}</th><th style="text-align:right;">Δ</th>`:''}
+      <th>Barra</th>
+      <th style="min-width:120px;">Nota</th>
+      <th></th>
+    </tr></thead>
+    <tbody>
+    ${Array.from({length:12},(_,i)=>{
+      const m=String(i+1).padStart(2,'0');
+      const f=data.find(x=>x.month===m);
+      const pf=prevData.find(x=>x.month===m);
+      const isCurrent=parseInt(year)===now.getFullYear()&&i===now.getMonth();
+      const mPct=target?Math.round((f?.amount||0)/(target/12)*100):null;
+      const delta=f&&pf?Math.round(((f.amount-pf.amount)/pf.amount)*100):null;
+      const maxM=Math.max(...data.map(x=>x.amount||0),1);
+      const bp=f?Math.round((f.amount||0)/maxM*100):0;
+      return `<tr class="fat-table-row${isCurrent?' current':''}" style="${isCurrent?'':''}">
+        <td style="font-weight:${isCurrent?'600':'400'};color:${isCurrent?'var(--gold-dim)':'var(--text-mid)'};">${MONTHS[i]}${isCurrent?' ●':''}</td>
+        <td style="text-align:right;font-weight:600;color:var(--navy);">${f?(f.amount||0).toLocaleString('pt-PT')+'€':'—'}</td>
+        ${target?`<td style="text-align:right;font-size:11px;color:${mPct&&mPct>=100?'var(--green)':mPct&&mPct<80?'var(--red)':'var(--text-muted)'};">${mPct!==null?mPct+'%':'—'}</td>`:''}
+        ${hasComp?`<td style="text-align:right;font-size:11px;color:var(--text-muted);">${pf?(pf.amount||0).toLocaleString('pt-PT')+'€':'—'}</td>
+        <td style="text-align:right;font-size:11px;color:${delta!==null?(delta>=0?'var(--green)':'var(--red)'):'var(--text-muted)'};">${delta!==null?(delta>=0?'+':'')+delta+'%':'—'}</td>`:''}
+        <td><div style="width:80px;height:4px;background:var(--border);border-radius:2px;"><div style="width:${bp}%;height:100%;background:${isCurrent?'var(--gold)':'var(--navy)'};border-radius:2px;"></div></div></td>
+        <td style="font-size:11px;color:var(--text-muted);max-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f?.note||''}</td>
+        <td>${f?`<button class="btn-ghost" style="font-size:11px;color:var(--red);padding:2px 7px;" onclick="delFat('${f.id}')">×</button>`:''}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+    <tfoot><tr style="border-top:2px solid var(--border2);">
+      <td style="font-weight:600;color:var(--text);">Total</td>
+      <td style="text-align:right;font-weight:600;font-family:'Cormorant Garamond',serif;font-size:17px;color:var(--navy);">${data.reduce((s,f)=>s+(f.amount||0),0).toLocaleString('pt-PT')}€</td>
+      ${target?`<td style="text-align:right;font-size:11px;font-weight:600;color:var(--text-mid);">${Math.round(data.reduce((s,f)=>s+(f.amount||0),0)/target*100)}%</td>`:''}
+      ${hasComp?'<td></td><td></td>':''}
+      <td></td><td></td><td></td>
+    </tr></tfoot>
+  </table></div>`;
+}
+
+function renderFatCards(el,data,target,avg) {
+  const monthTarget=target?Math.round(target/12):0;
+  const now=new Date();
+  const allMonths=Array.from({length:12},(_,i)=>{
+    const m=String(i+1).padStart(2,'0');
+    const found=data.find(f=>f.month===m);
+    const isCurrent=i===now.getMonth();
+    const isFuture=i>now.getMonth();
+    const pct=found&&monthTarget?Math.round(found.amount/monthTarget*100):null;
+    return {i,m,name:MONTHS[i],found,isCurrent,isFuture,pct};
+  });
+
+  el.innerHTML=`<div class="fat-cards-grid">
+    ${allMonths.map(({i,found,name,isCurrent,isFuture,pct})=>{
+      const amt=found?.amount||0;
+      return `<div class="fat-month-card${isCurrent?' current':isFuture&&!found?' projected':''}" ${found?`onclick="delFat('${found.id}')"`:''}>
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+          <div style="font-size:11px;color:${isCurrent?'var(--gold-dim)':'var(--text-muted)'};">${name}${isCurrent?' ●':''}</div>
+          ${pct!==null?`<span style="font-size:10px;color:${pct>=100?'var(--green)':pct<80?'var(--red)':'var(--text-muted)'};">${pct}%</span>`:''}
+        </div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:${found?'22':'16'}px;font-weight:600;color:${isCurrent?'var(--gold-dim)':found?'var(--navy)':'var(--text-light)'};margin-bottom:4px;">${found?amt.toLocaleString('pt-PT')+'€':'—'}</div>
+        ${monthTarget&&found?`<div style="height:4px;background:var(--border);border-radius:2px;"><div style="width:${Math.min(100,pct||0)}%;height:100%;background:${isCurrent?'var(--gold)':'var(--navy)'};border-radius:2px;"></div></div>`:''}
+        ${monthTarget&&!found&&isFuture?`<div style="font-size:10px;color:var(--text-light);margin-top:4px;">obj. ${monthTarget.toLocaleString('pt-PT')}€</div>`:''}
+        ${found?.note?`<div style="font-size:10px;color:var(--text-muted);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${found.note}</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function renderFatLine(el,data,all,allYears,targets) {
+  const year=document.getElementById('fatYearSel')?.value||'2026';
+  const now=new Date();
+  // Build points array
+  const points=data.map((f,i)=>({x:parseInt(f.month)-1, y:f.amount||0, m:f.month}));
+  if(!points.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--text-light);">Sem dados para mostrar.</div>';return;}
+
+  const maxY=Math.max(...points.map(p=>p.y),targets[year]?targets[year]/12:0,1);
+  const W=500, H=160, PL=10, PR=10, PT=20, PB=30;
+  const scaleX=i=>(PL+(i/(11))*(W-PL-PR));
+  const scaleY=v=>(H-PB-(v/maxY)*(H-PT-PB));
+
+  let linePath='', areaPath='';
+  points.forEach((p,i)=>{
+    const x=scaleX(p.x), y=scaleY(p.y);
+    linePath+=(i===0?`M${x},${y}`:`L${x},${y}`);
+    areaPath+=(i===0?`M${x},${H-PB} L${x},${y}`:`L${x},${y}`);
+  });
+  const lastP=points[points.length-1];
+  areaPath+=` L${scaleX(lastP.x)},${H-PB} Z`;
+
+  // Month labels
+  const labels=MONTHS_S.map((m,i)=>`<text x="${scaleX(i)}" y="${H-PB+14}" text-anchor="middle" font-size="9" fill="#888">${m}</text>`).join('');
+  // Dots
+  const dots=points.map(p=>`<circle cx="${scaleX(p.x)}" cy="${scaleY(p.y)}" r="4" fill="${parseInt(p.m)-1===now.getMonth()&&parseInt(year)===now.getFullYear()?'var(--gold)':'var(--navy)'}" stroke="white" stroke-width="1.5"/>
+    <title>${MONTHS_S[parseInt(p.m)-1]}: ${p.y.toLocaleString('pt-PT')}€</title>`).join('');
+  // Target line
+  const tLine=targets[year]?`<line x1="${PL}" y1="${scaleY(targets[year]/12)}" x2="${W-PR}" y2="${scaleY(targets[year]/12)}" stroke="var(--gold)" stroke-width="1" stroke-dasharray="4,3" opacity=".7"/>
+    <text x="${W-PR-2}" y="${scaleY(targets[year]/12)-5}" font-size="8" fill="var(--gold-dim)" text-anchor="end">obj. mensal</text>`:'';
+
+  el.innerHTML=`<svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;margin-bottom:16px;">
+    <defs><linearGradient id="fatGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--navy)" stop-opacity=".12"/><stop offset="100%" stop-color="var(--navy)" stop-opacity="0"/></linearGradient></defs>
+    ${tLine}
+    <path d="${areaPath}" fill="url(#fatGrad)"/>
+    <path d="${linePath}" fill="none" stroke="var(--navy)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    ${dots}
+    ${labels}
+  </svg>
+  ${allYears.length>1?`<div style="overflow-x:auto;"><table class="p-table"><thead><tr><th>Mês</th>${allYears.map(y=>`<th style="text-align:right;">${y}</th>`).join('')}<th style="text-align:right;">Δ</th></tr></thead><tbody>
+  ${MONTHS.map((m,i)=>{const ms=String(i+1).padStart(2,'0');const vals=allYears.map(y=>all.filter(f=>f.year===y&&f.month===ms).reduce((s,f)=>s+(f.amount||0),0));
+    const delta=vals.length>=2&&vals[0]&&vals[1]?Math.round(((vals[0]-vals[1])/vals[1])*100):null;
+    return `<tr class="fat-table-row"><td>${m}</td>${vals.map((v,j)=>`<td style="text-align:right;font-size:12px;color:${j===0?'var(--navy)':'var(--text-muted)'};">${v?v.toLocaleString('pt-PT')+'€':'—'}</td>`).join('')}<td style="text-align:right;font-size:11px;color:${delta!==null?(delta>=0?'var(--green)':'var(--red)'):'var(--text-muted)'};">${delta!==null?(delta>=0?'+':'')+delta+'%':'—'}</td></tr>`;
+  }).join('')}</tbody></table></div>`:''}`;
+}
+
+// ── FAT CRUD ──
+function saveFat() {
+  const f={id:Date.now().toString(),month:document.getElementById('fMonth').value,year:document.getElementById('fYear').value,amount:parseFloat(document.getElementById('fAmt').value)||0,note:document.getElementById('fNote').value};
+  const all=PA.get('faturacao',[]); all.push(f); PA.set('faturacao',all);
+  closeModal('mFat'); renderFat(); toast('Mês registado');
+  ['fAmt','fNote'].forEach(id=>document.getElementById(id).value='');
+}
+function delFat(id){if(!confirm('Apagar?'))return;PA.set('faturacao',PA.get('faturacao',[]).filter(f=>f.id!==id));renderFat();}
+function saveFatTarget(){
+  const y=document.getElementById('ftYear').value, a=parseFloat(document.getElementById('ftAmt').value)||0;
+  const t=PA.get('fat_targets',{}); t[y]=a; PA.set('fat_targets',t);
+  closeModal('mFatTarget'); renderFat(); toast('Objetivo guardado');
+  document.getElementById('ftAmt').value='';
+}
+async function getAIFaturacao(){
+  const {year,data,targets}=getFatData();
+  if(!data.length)return toast('Sem dados');
+  document.getElementById('fatAI').innerHTML='<div class="loading-wrap" style="min-height:60px"><div class="spin"></div></div>';
+  try{
+    const d=await callAPI(getSys(),[{role:'user',content:`Análise da faturação P&A ${year}: ${data.map(f=>`${f.month}/${year}: ${f.amount}€`).join('; ')}. Objetivo: ${targets[year]||'não definido'}€. Análise directa e concreta.`}],600);
+    document.getElementById('fatAI').innerHTML=`<div class="card" style="margin-top:8px;"><div class="card-label">Análise IA</div><div class="card-body" style="font-size:13px;line-height:1.85;">${renderMd(getReply(d))}</div></div>`;
+  }catch(e){document.getElementById('fatAI').innerHTML='';toast('Erro','error');}
+}
+</script>
+</body>
+</html>
